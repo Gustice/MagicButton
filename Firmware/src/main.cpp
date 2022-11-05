@@ -1,14 +1,21 @@
+#include "Button.h"
+#include "ClountDown.h"
 #include <Adafruit_NeoPixel.h>
 #include <Arduino.h>
-#include "Button.h"
+#define STM32F1
+#include "TimerInterrupt_Generic.h"
 
 unsigned PixelCount = 16u;
 int LedOutputPin = PB8;
 int ButtonPin = PB9;
 int DebugPin = PB12;
+const unsigned HwTimerInterval_us(1 * 1000);
 
 int readButtonPin(void);
-Button Btn(readButtonPin, HIGH);
+STM32Timer ITimer(TIM1);
+static Button Btn(readButtonPin, HIGH);
+static CntDown ledTick(40);
+static CntDown buttonTick(50);
 
 Adafruit_NeoPixel _strip(PixelCount, LedOutputPin, NEO_GRBW + NEO_KHZ800);
 struct RgbColor {
@@ -19,12 +26,20 @@ struct RgbColor {
 };
 RgbColor color = {8, 0, 0, 0};
 
+void cyclicInterruptRoutine() {
+    ledTick.Tick();
+    buttonTick.Tick();
+}
+
 void setup() {
     pinMode(PC13, OUTPUT);
     pinMode(LedOutputPin, OUTPUT);
 
     SerialUSB.begin();
     SerialUSB.println("Setup is finished");
+
+  if (!ITimer.attachInterruptInterval(HwTimerInterval_us, cyclicInterruptRoutine))
+    SerialUSB.println(F("Can't set ITimer. Select another freq. or timer"));
 }
 
 int readButtonPin(void) { return digitalRead(ButtonPin); }
@@ -33,6 +48,7 @@ void setDebugPin(int value) { digitalWrite(DebugPin, value); }
 
 void loop() {
     static unsigned idx;
+
     if (SerialUSB) {
         if (SerialUSB.available()) {
             auto c = SerialUSB.read();
@@ -48,6 +64,7 @@ void loop() {
         }
     }
 
+    if (ledTick.GetVolatileFlag()) {
     setDebugPin(HIGH);
     if (Btn.Eval() != Button::State::Holding) {
         for (unsigned i = 0; i < PixelCount; i++) {
@@ -68,6 +85,5 @@ void loop() {
 
     _strip.show();
     setDebugPin(LOW);
-
-    delay(500);
+    }
 }
