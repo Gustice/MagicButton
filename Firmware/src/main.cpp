@@ -4,6 +4,9 @@
 #include <Arduino.h>
 #define STM32F1
 #include "TimerInterrupt_Generic.h"
+#include "Processor.h"
+
+using namespace Effect;
 
 unsigned PixelCount = 16u;
 int LedOutputPin = PB8;
@@ -16,6 +19,7 @@ STM32Timer ITimer(TIM1);
 static Button Btn(readButtonPin, HIGH);
 static CntDown ledTick(40);
 static CntDown buttonTick(20);
+
 
 Adafruit_NeoPixel _strip(PixelCount, LedOutputPin, NEO_GRBW + NEO_KHZ800);
 struct RgbColor {
