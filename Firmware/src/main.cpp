@@ -15,7 +15,7 @@ int readButtonPin(void);
 STM32Timer ITimer(TIM1);
 static Button Btn(readButtonPin, HIGH);
 static CntDown ledTick(40);
-static CntDown buttonTick(50);
+static CntDown buttonTick(20);
 
 Adafruit_NeoPixel _strip(PixelCount, LedOutputPin, NEO_GRBW + NEO_KHZ800);
 struct RgbColor {
@@ -38,8 +38,8 @@ void setup() {
     SerialUSB.begin();
     SerialUSB.println("Setup is finished");
 
-  if (!ITimer.attachInterruptInterval(HwTimerInterval_us, cyclicInterruptRoutine))
-    SerialUSB.println(F("Can't set ITimer. Select another freq. or timer"));
+    if (!ITimer.attachInterruptInterval(HwTimerInterval_us, cyclicInterruptRoutine))
+        SerialUSB.println(F("Can't set ITimer. Select another freq. or timer"));
 }
 
 int readButtonPin(void) { return digitalRead(ButtonPin); }
@@ -64,26 +64,50 @@ void loop() {
         }
     }
 
-    if (ledTick.GetVolatileFlag()) {
-    setDebugPin(HIGH);
-    if (Btn.Eval() != Button::State::Holding) {
-        for (unsigned i = 0; i < PixelCount; i++) {
-            if (i == idx) {
-                _strip.setPixelColor(i, color.R, color.G, color.B, color.W);
-            } else {
-                _strip.setPixelColor(i, 0, 0, 0, 0);
-            }
-        }
-    } else {
-        for (unsigned i = 0; i < PixelCount; i++) {
-            _strip.setPixelColor(i, 8, 8, 8, 0);
+    if (buttonTick.GetVolatileFlag()) {
+        switch (Btn.Eval()) {
+        case Button::State::Pressed:
+            //       Light.ChangeScheme(eLedEffects::Led_Process);
+            //   DevIn.u1_buzz = 1;
+            //   SER_SendInput(0x01);
+            break;
+
+        case Button::State::Holding:
+            //   DevIn.u1_buzz = 1;
+            break;
+
+        case Button::State::Released:
+            //       Light.ChangeScheme(eLedEffects::Led_Stable);
+            //   DevIn.u1_buzz = 0;
+            //   SER_SendInput(0x00);
+            break;
+
+        case Button::State::Idle:
+            //   DevIn.u1_buzz = 0;
+            break;
         }
     }
 
-    if (++idx >= PixelCount)
-        idx = 0;
+    if (ledTick.GetVolatileFlag()) {
+        setDebugPin(HIGH);
+        if (Btn.GetState() != Button::State::Holding) {
+            for (unsigned i = 0; i < PixelCount; i++) {
+                if (i == idx) {
+                    _strip.setPixelColor(i, color.R, color.G, color.B, color.W);
+                } else {
+                    _strip.setPixelColor(i, 0, 0, 0, 0);
+                }
+            }
+        } else {
+            for (unsigned i = 0; i < PixelCount; i++) {
+                _strip.setPixelColor(i, 8, 8, 8, 0);
+            }
+        }
 
-    _strip.show();
-    setDebugPin(LOW);
+        if (++idx >= PixelCount)
+            idx = 0;
+
+        _strip.show();
+        setDebugPin(LOW);
     }
 }
