@@ -1,10 +1,14 @@
 #include <Adafruit_NeoPixel.h>
 #include <Arduino.h>
+#include "Button.h"
 
 unsigned PixelCount = 16u;
 int LedOutputPin = PB8;
 int ButtonPin = PB9;
 int DebugPin = PB12;
+
+int readButtonPin(void);
+Button Btn(readButtonPin, HIGH);
 
 Adafruit_NeoPixel _strip(PixelCount, LedOutputPin, NEO_GRBW + NEO_KHZ800);
 struct RgbColor {
@@ -23,7 +27,7 @@ void setup() {
     SerialUSB.println("Setup is finished");
 }
 
-int readButtonPin() { return digitalRead(ButtonPin); }
+int readButtonPin(void) { return digitalRead(ButtonPin); }
 
 void setDebugPin(int value) { digitalWrite(DebugPin, value); }
 
@@ -45,7 +49,7 @@ void loop() {
     }
 
     setDebugPin(HIGH);
-    if (!(digitalRead(ButtonPin) != 0)) {
+    if (Btn.Eval() != Button::State::Holding) {
         for (unsigned i = 0; i < PixelCount; i++) {
             if (i == idx) {
                 _strip.setPixelColor(i, color.R, color.G, color.B, color.W);
