@@ -21,7 +21,7 @@ static CntDown ledTick(40 /* ms*/);
 static CntDown buttonTick(20 /* ms*/);
 
 unsigned PixelCount = PIXEL_COUNT;
-Processor pixelRing(8);
+MultiProcessor<PIXEL_COUNT> pixelRing(8);
 
 enum DeviceState {
     Startup = 0,
@@ -38,11 +38,11 @@ struct Scene
 };
 DeviceState state = DeviceState::Startup;
 const Scene Scenes[] {
-    {DeviceState::Startup , macIdle, CWhite},
-    {DeviceState::Connected , macIdle, CCyan},
-    {DeviceState::Processing , macIdle, CYellow},
-    {DeviceState::Good , macIdle, CGreen},
-    {DeviceState::Bad , macIdle, CRed},
+    {DeviceState::Startup , macStartIdleAll, CWhite},
+    {DeviceState::Connected , macIdleAll, CCyan},
+    {DeviceState::Processing , macStdRotate, CYellow},
+    {DeviceState::Good , macStdPulseAll, CGreen},
+    {DeviceState::Bad , macNervousPulseAll, CRed},
 };
 Adafruit_NeoPixel _strip(PixelCount, LedOutputPin, NEO_GRBW + NEO_KHZ800);
 
@@ -127,12 +127,18 @@ void loop() {
     if (ledTick.GetVolatileFlag()) {
         setDebugPin(HIGH);
         auto colors = pixelRing.Tick();
-        auto c = colors[0].GetColor();
-        if (pColorOverride != nullptr)
-            c = pColorOverride->GetColor();
-        for (size_t i = 0; i < PixelCount; i++) {
+        if (pColorOverride != nullptr) {
+            auto c = pColorOverride->GetColor();
+            for (size_t i = 0; i < PixelCount; i++) {
+                    _strip.setPixelColor(i, c.red >> 2 , c.green  >> 2, c.blue  >> 2, 0);
+                }
+        }
+        else{
+            for (size_t i = 0; i < PixelCount; i++) {
+                auto c = colors[i].GetColor();
                 _strip.setPixelColor(i, c.red >> 2 , c.green  >> 2, c.blue  >> 2, 0);
             }
+        }
         _strip.show();
         setDebugPin(LOW);
     }
