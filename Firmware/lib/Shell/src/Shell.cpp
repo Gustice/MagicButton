@@ -46,7 +46,7 @@ void Shell::ConsumeSymbol(int symbol) {
         }
 
         if (c == '\n') {
-            ProcessString();
+            ProcessString(_asciCommand);
             SetupNewLine();
             return;
         }
@@ -91,18 +91,51 @@ static const std::string cSetColorCmd("Set Color:");
 static const std::string cSetEffectCmd("Set Effect:");
 static const std::string cSetActionCmd("Set Action:");
 static const std::string cGetStatusCmd("Set Action:");
-void Shell::ProcessString() {
-    if (_asciCommand.find(cSetColorCmd) == 0) { // starts with
+
+void Shell::ProcessString(std::string &cmd) {
+    if (cmd[0] == '#') { // Starts with #
+        if (cmd == "#r") {
+            _fpColorCb(CRed);
+        }
+        else if (cmd == "#g") {
+            _fpColorCb(CGreen);
+        }
+        else if (cmd == "#b") {
+            _fpColorCb(CBlue);
+        }
+        else if (cmd == "#m") {
+            _fpColorCb(CMagenta);
+        }
+        else if (cmd == "#c") {
+            _fpColorCb(CCyan);
+        }
+        else if (cmd == "#y") {
+            _fpColorCb(CYellow);
+        }
+        else if (cmd == "#w") {
+            _fpColorCb(CWhite);
+        }
+        else if (cmd == "#1") {
+            _fpSceneCb(1);
+        }
+        else if (cmd == "#2") {
+            _fpSceneCb(2);
+        }
+        else if (cmd == "#3") {
+            _fpSceneCb(3);
+        }
+        return;
+    } else if (cmd.find(cSetColorCmd) == 0) { // starts with
         int rgbw[4];
         int start = cSetColorCmd.size();
         for (size_t i = 0; i < 4; i++) {
-            auto p = _asciCommand.find(",", start);
+            auto p = cmd.find(",", start);
             if (p != std::string::npos) {
-                rgbw[i] = std::stoi(_asciCommand.substr(start, p - start), 0, 16);
+                rgbw[i] = std::stoi(cmd.substr(start, p - start), 0, 16);
                 start = p + 1;
             } else {
                 if (i == 3) { // last element
-                    rgbw[i] = std::stoi(_asciCommand.substr(start), 0, 16);
+                    rgbw[i] = std::stoi(cmd.substr(start), 0, 16);
                 } else {
                     _stream.println("Four comma-separated color-values expected. Input discared!");
                     return;
@@ -112,12 +145,11 @@ void Shell::ProcessString() {
         _stream.println("Setting Color");
         Color c(rgbw[0], rgbw[1], rgbw[2], rgbw[3]);
         _fpColorCb(c);
-
-    } else if (_asciCommand.find(cSetEffectCmd) == 0) { // starts with
+    } else if (cmd.find(cSetEffectCmd) == 0) { // starts with
         _stream.println("Setting Effect");
-    } else if (_asciCommand.find(cSetActionCmd) == 0) { // starts with
+    } else if (cmd.find(cSetActionCmd) == 0) { // starts with
         _stream.println("Setting Action");
-    } else if (_asciCommand == cGetStatusCmd) { // starts with
+    } else if (cmd == cGetStatusCmd) { // starts with
         _stream.println("State: ...");
     } else {
         _stream.println("Unknown command. See help with '?' ...");

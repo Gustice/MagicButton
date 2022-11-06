@@ -47,15 +47,32 @@ const Scene Scenes[] {
 };
 Adafruit_NeoPixel _strip(PixelCount, LedOutputPin, NEO_GRBW + NEO_KHZ800);
 
-void SetColor(Color &c) {
+void SetColor(const Color &c) {
     pixelRing.SetEffect(macIdleAll, &c);
+}
+void SetScene(unsigned s) {
+    switch (s)
+    {
+    case 1:
+        pixelRing.SetEffect(Scenes[DeviceState::Processing].Effect, &Scenes[DeviceState::Processing].color);
+    break;
+    case 2:
+        pixelRing.SetEffect(Scenes[DeviceState::Good].Effect, &Scenes[DeviceState::Good].color);
+    break;
+    case 3:
+        pixelRing.SetEffect(Scenes[DeviceState::Bad].Effect, &Scenes[DeviceState::Bad].color);
+    break;
+    default:
+    SerialUSB.println("No Scene to set");
+    break;
+    }
 }
 void cyclicInterruptRoutine() {
     ledTick.Tick();
     buttonTick.Tick();
 }
 
-Shell shell(SerialUSB, SetColor);
+Shell shell(SerialUSB, SetColor, SetScene);
 
 void setup() {
     pinMode(PC13, OUTPUT);
@@ -86,26 +103,10 @@ void loop() {
     }
 
     if (SerialUSB) {
-
         if (SerialUSB.available()) {
             auto c = SerialUSB.read();
             SerialUSB.print((char)c);
             shell.ConsumeSymbol(c);
-
-            if (c == 'r')
-                pixelRing.SetEffect(Scenes[DeviceState::Startup].Effect, &CRed);
-            else if (c == 'g')
-                pixelRing.SetEffect(Scenes[DeviceState::Startup].Effect, &CGreen);
-            else if (c == 'b')
-                pixelRing.SetEffect(Scenes[DeviceState::Startup].Effect, &CBlue);
-            else if (c == 'w')
-                pixelRing.SetEffect(Scenes[DeviceState::Startup].Effect, &CWhite);
-            else if (c == '1')
-                pixelRing.SetEffect(Scenes[DeviceState::Processing].Effect, &Scenes[DeviceState::Processing].color);
-            else if (c == '2')
-                pixelRing.SetEffect(Scenes[DeviceState::Good].Effect, &Scenes[DeviceState::Good].color);
-            else if (c == '3')
-                pixelRing.SetEffect(Scenes[DeviceState::Bad].Effect, &Scenes[DeviceState::Bad].color);
         }
     }
 

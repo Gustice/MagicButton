@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Arduino.h"
-#include <string>
 #include "Color.h"
+#include <string>
 /*
     Protocol-definition for USB-CDC-Interface
     Command:
@@ -25,8 +25,8 @@ enum RawCommands {
     GetInput,
 };
 struct rawCmdHeader_t {
-    uint8_t cmdCode;    // Command e_Commands
-    uint8_t length; // Message length
+    uint8_t cmdCode; // Command e_Commands
+    uint8_t length;  // Message length
 };
 
 struct DevInData_t {
@@ -52,8 +52,10 @@ struct ValidCommands_t {
 
 class Shell {
   public:
-    typedef void (*SetColorCb)(Color &c);
-    Shell(Stream & stream, SetColorCb colorCb) : _stream(stream), _fpColorCb(colorCb) {
+    typedef void (*SetColorCb)(const Color &c);
+    typedef void (*SetSceneCb)(unsigned e);
+    Shell(Stream &stream, SetColorCb colorCb, SetSceneCb sceneCb)
+        : _stream(stream), _fpColorCb(colorCb), _fpSceneCb(sceneCb) {
         _asciCommand.reserve(32);
     }
     void Tick();
@@ -63,14 +65,14 @@ class Shell {
     void PrintWelcome(void);
 
   private:
-    Stream & _stream;
+    Stream &_stream;
 
     enum InputType_t {
         New = 0,
         Raw,
         Asci,
     };
-    
+
     InputType_t _inputType = InputType_t::New;
     uint8_t _rawCommand[16];
     unsigned _rawIdx = 0;
@@ -78,6 +80,7 @@ class Shell {
 
     void SetupNewLine();
     void ProcessRaw();
-    void ProcessString();
+    void ProcessString(std::string &cmd);
     SetColorCb _fpColorCb;
+    SetSceneCb _fpSceneCb;
 };
