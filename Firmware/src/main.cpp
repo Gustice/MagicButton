@@ -5,6 +5,7 @@
 #define STM32F1
 #include "Processor.h"
 #include "TimerInterrupt_Generic.h"
+#include "Shell.h"
 
 using namespace Effect;
 
@@ -46,10 +47,15 @@ const Scene Scenes[] {
 };
 Adafruit_NeoPixel _strip(PixelCount, LedOutputPin, NEO_GRBW + NEO_KHZ800);
 
+void SetColor(Color &c) {
+    pixelRing.SetEffect(macIdleAll, &c);
+}
 void cyclicInterruptRoutine() {
     ledTick.Tick();
     buttonTick.Tick();
 }
+
+Shell shell(SerialUSB, SetColor);
 
 void setup() {
     pinMode(PC13, OUTPUT);
@@ -70,6 +76,7 @@ void loop() {
     static const Color * pColorOverride = nullptr;
     if (SerialUSB == true) {
         if (state == DeviceState::Startup) {
+            shell.PrintWelcome();
             state = DeviceState::Connected;
             pixelRing.SetEffect(Scenes[state].Effect, &Scenes[state].color);
         }
@@ -82,7 +89,9 @@ void loop() {
 
         if (SerialUSB.available()) {
             auto c = SerialUSB.read();
-            SerialUSB.println(c);
+            SerialUSB.print((char)c);
+            shell.ConsumeSymbol(c);
+
             if (c == 'r')
                 pixelRing.SetEffect(Scenes[DeviceState::Startup].Effect, &CRed);
             else if (c == 'g')
