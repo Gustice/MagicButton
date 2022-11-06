@@ -57,40 +57,44 @@ using Macro = std::vector<Macro_t>;
 
 /// @brief Dark - Nothing to see here
 extern const Macro macDark;
-
 /// @brief Continuous idle
 extern const Macro macIdle;
-
 /// @brief Smooth turn on and then remaining idle
 extern const Macro macStartIdle;
-
 /// @brief Smooth turn on to full color
 extern const Macro macStartFull;
-
 /// @brief Slow pulse starting from idle intensity. Appears like breathing
 extern const Macro macStdPulse;
-
 /// @brief Short pulses starting from idle intensity. Appears nervously.
 extern const Macro macNervousPulse;
-
 /// @brief Swipe-Effect (one side to other)
 extern const std::vector<Macro> macDualStdWip;
-
 /// @brief Offset-Pulse:: Pulse on top of idle intensity
 extern const WaveForm_t OffsetPulseWave;
-
 /// @brief Full-Pulse:: Pulse starting/ending at dark
 extern const WaveForm_t FullPulseWave;
-
 /// @brief Init-Slop:: Fading in idle intensity
 extern const WaveForm_t InitSlopeWave;
-
 /// @brief Offset-Slope:: Fading intensity to full intensity from idle
 extern const WaveForm_t OffsetSlopeWave;
-
 /// @brief Full-Pulse:: Fading from dark to full intensity
 extern const WaveForm_t FullSlopeWave;
 
+
+/// @brief Dark - Nothing to see here (for multiple pixel)
+extern const Macro macDarkAll; 
+/// @brief Continuous idle (for multiple pixel)
+extern const Macro macIdleAll;
+/// @brief Slow pulse starting from idle intensity. Appears like breathing (for multiple pixel)
+extern const Macro macStdPulseAll;
+/// @brief Smooth turn on and then remaining idle (for multiple pixel)
+extern const Macro macStartIdleAll;
+/// @brief Smooth turn on to full color (for multiple pixel)
+extern const Macro macStartFullAll;
+/// @brief Short pulses starting from idle intensity. Appears nervously. (for multiple pixel)
+extern const Macro macNervousPulseAll;
+/// @brief Slow rotating pulse over pixel-strip
+extern const Macro macStdRotate;
 
 
 } // namespace Effect

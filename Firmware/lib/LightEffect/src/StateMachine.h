@@ -49,8 +49,6 @@ class StateMachine {
      */
     StateMachine(MachineParameter_t &parameter);
 
-    ~StateMachine();
-
     /**
      * @brief Sets the effect state machine to process given effect macro
      * @param sequence reference to sequence of macros
@@ -76,7 +74,7 @@ class StateMachine {
      *  a convenient values.
      * @return Color color result
      */
-    virtual Color const *Tick(void);
+    void Tick(Color * color);
 
     /// @brief Black out lights
     static void UpdateBlank(StepProcessValues_t &pcsParam);
@@ -90,6 +88,15 @@ class StateMachine {
     static void UpdateRevWave(StepProcessValues_t &pcsParam);
     /// @brief Show flicker effect with idle intensity as static part with dynamic flicker-range
     static void UpdateFlicker(StepProcessValues_t &pcsParam);
+
+    /// @brief Black out all lights (for multiple pixels)
+    static void UpdateBlankAll(StepProcessValues_t &pcsParam); 
+    /// @brief Continuous illumination in idle intensity (for multiple pixels)
+    static void UpdateIdleAll(StepProcessValues_t &pcsParam);
+    /// @brief Step through a defined waveform (for multiple pixels)
+    static void UpdateWaveAll(StepProcessValues_t &pcsParam);
+    /// @brief Swipe defined waveform  (for multiple pixels)
+    static void UpdateRotateWaveAll(StepProcessValues_t &pcsParam);
 
   protected:
     /**
@@ -108,9 +115,6 @@ class StateMachine {
     const Macro *_p_effSeq;
     /// @brief Currently indexed Effect-part
     const Macro_t *_p_effMac;
-
-    /// @brief Reference to output color
-    Color *_outputColor;
 
     /// @brief Last color
     Color _lastColor;

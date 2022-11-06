@@ -19,10 +19,7 @@ Macro delayPrequel = {{1, 0, StateMachine::UpdateBlank, 0, &CBlack}};
 
 StateMachine::StateMachine(MachineParameter_t &parameter) : _params(parameter), _idx(1, 1) {
     assert(parameter.targetCount > 0);
-    _outputColor = new Color;
 }
-
-StateMachine::~StateMachine() { delete _outputColor; }
 
 void StateMachine::SetEffect(const Macro &sequence, Color const *startColor, uint8_t initialDelay) {
     SetEffect(sequence, startColor, &_params.idleIntens, initialDelay);
@@ -55,7 +52,7 @@ void StateMachine::SetEffect(const Macro &sequence, Color const *startColor, con
     _idx = ExactIndex(_p_effMac->pWave->Length, _p_effMac->Duration);
 }
 
-Color const *StateMachine::Tick(void) {
+void StateMachine::Tick(Color *color) {
     // tick-increment
     if (--_prcValues.tick == 0) {
         // repeats-decrement
@@ -78,9 +75,9 @@ Color const *StateMachine::Tick(void) {
     ++_idx;
 
     StepProcessValues_t pv{
-        .color = _outputColor,
+        .color = color,
         .pCurentColor = _curentColor,
-        .ColorLen = 1,
+        .ColorLen = _params.targetCount,
         .IdleIntensity = _params.idleIntens,
         .FullIntensity = _p_effMac->FsIntensity,
         .DynamicRange = _params.dynamicRange,
@@ -96,9 +93,8 @@ Color const *StateMachine::Tick(void) {
         uint8_t dissolving = (uint8_t)((uint16_t)0xFF * _prcValues.dissolveCnt / _params.fadeSteps);
         Color temp = _curentColor;
         temp.MixWith(_lastColor, dissolving);
-        *_outputColor = temp;
+        *color = temp;
     }
-    return _outputColor;
 }
 
 void StateMachine::UpdateBlank(StepProcessValues_t &pcsParam) { *pcsParam.color = CBlack; }
@@ -132,4 +128,44 @@ void StateMachine::UpdateFlicker(StepProcessValues_t &pcsParam) {
 
     *pcsParam.color = pcsParam.pCurentColor;
     *pcsParam.color = *pcsParam.color * ((float)(k));
+}
+
+void StateMachine::UpdateBlankAll(StepProcessValues_t &pcsParam) {
+    for (size_t i = 0; i < pcsParam.ColorLen; i++) {
+        pcsParam.color[i] = CBlack;
+    }
+}
+
+void StateMachine::UpdateIdleAll(StepProcessValues_t &pcsParam) {
+    Color temp = pcsParam.pCurentColor * pcsParam.IdleIntensity;
+    for (size_t i = 0; i < pcsParam.ColorLen; i++) {
+        pcsParam.color[i] = temp;
+    }
+}
+
+void StateMachine::UpdateWaveAll(StepProcessValues_t &pcsParam) {
+    Color temp = pcsParam.pCurentColor;
+    temp =
+        temp * ((float)(pcsParam.pWave->pWave[pcsParam.waveIdx]) / 0xFF * pcsParam.FullIntensity);
+
+    for (size_t i = 0; i < pcsParam.ColorLen; i++) {
+        pcsParam.color[i] = temp;
+    }
+}
+
+void StateMachine::UpdateRotateWaveAll(StepProcessValues_t &pcsParam) {
+    Color temp = pcsParam.pCurentColor;
+    temp =
+        temp * ((float)(pcsParam.pWave->pWave[pcsParam.waveIdx]) / 0xFF * pcsParam.FullIntensity);
+    *pcsParam.color = temp;
+
+    uint16_t cStep = pcsParam.waveIdx << 8;
+    uint16_t step = (pcsParam.pWave->Length << 8) / pcsParam.ColorLen;
+    const uint8_t *pWave = pcsParam.pWave->pWave;
+    for (size_t i = 0; i < pcsParam.ColorLen; i++) {
+        pcsParam.color[i] = temp;
+        Color tempC = pcsParam.pCurentColor;
+        pcsParam.color[i] = tempC * pWave[cStep >> 8];
+        cStep += step;
+    }
 }
