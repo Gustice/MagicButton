@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #define STM32F1
 #include "Processor.h"
+#include "Shell.h"
 #include "TimerInterrupt_Generic.h"
 
 using namespace Effect;
@@ -26,30 +27,54 @@ MultiProcessor<PIXEL_COUNT> pixelRing(8);
 enum DeviceState {
     Startup = 0,
     Connected,
+    Idle,
     Processing,
     Good,
     Bad,
 };
-struct Scene
-{
+struct Scene {
     DeviceState Code;
-    const Macro & Effect;
-    const Color & color;
+    const Macro &Effect;
+    const Color &color;
 };
 DeviceState state = DeviceState::Startup;
-const Scene Scenes[] {
-    {DeviceState::Startup , macStartIdleAll, CWhite},
-    {DeviceState::Connected , macIdleAll, CCyan},
-    {DeviceState::Processing , macStdRotate, CYellow},
-    {DeviceState::Good , macStdPulseAll, CGreen},
-    {DeviceState::Bad , macNervousPulseAll, CRed},
+const Scene Scenes[]{
+    {DeviceState::Startup, macStartIdleAll, CWhite},
+    {DeviceState::Connected, macIdleAll, CCyan},
+    {DeviceState::Idle, macIdleAll, CWhite},
+    {DeviceState::Processing, macStdRotate, CYellow},
+    {DeviceState::Good, macStdPulseAll, CGreen},
+    {DeviceState::Bad, macNervousPulseAll, CRed},
 };
 Adafruit_NeoPixel _strip(PixelCount, LedOutputPin, NEO_GRBW + NEO_KHZ800);
 
+void SetColor(const Color &c) { pixelRing.SetEffect(macIdleAll, &c); }
+void SetScene(unsigned s) {
+    switch (s) {
+    case 0:
+        pixelRing.SetEffect(Scenes[DeviceState::Idle].Effect, &Scenes[DeviceState::Idle].color);
+        break;
+    case 1:
+        pixelRing.SetEffect(Scenes[DeviceState::Processing].Effect,
+                            &Scenes[DeviceState::Processing].color);
+        break;
+    case 2:
+        pixelRing.SetEffect(Scenes[DeviceState::Good].Effect, &Scenes[DeviceState::Good].color);
+        break;
+    case 3:
+        pixelRing.SetEffect(Scenes[DeviceState::Bad].Effect, &Scenes[DeviceState::Bad].color);
+        break;
+    default:
+        SerialUSB.println("No Scene to set");
+        break;
+    }
+}
 void cyclicInterruptRoutine() {
     ledTick.Tick();
     buttonTick.Tick();
 }
+
+Shell shell(SerialUSB, SetColor, SetScene);
 
 void setup() {
     pinMode(PC13, OUTPUT);
@@ -67,9 +92,10 @@ int readButtonPin(void) { return digitalRead(ButtonPin); }
 void setDebugPin(int value) { digitalWrite(DebugPin, value); }
 
 void loop() {
-    static const Color * pColorOverride = nullptr;
+    static const Color *pColorOverride = nullptr;
     if (SerialUSB == true) {
         if (state == DeviceState::Startup) {
+            shell.PrintWelcome();
             state = DeviceState::Connected;
             pixelRing.SetEffect(Scenes[state].Effect, &Scenes[state].color);
         }
@@ -79,24 +105,10 @@ void loop() {
     }
 
     if (SerialUSB) {
-
         if (SerialUSB.available()) {
             auto c = SerialUSB.read();
-            SerialUSB.println(c);
-            if (c == 'r')
-                pixelRing.SetEffect(Scenes[DeviceState::Startup].Effect, &CRed);
-            else if (c == 'g')
-                pixelRing.SetEffect(Scenes[DeviceState::Startup].Effect, &CGreen);
-            else if (c == 'b')
-                pixelRing.SetEffect(Scenes[DeviceState::Startup].Effect, &CBlue);
-            else if (c == 'w')
-                pixelRing.SetEffect(Scenes[DeviceState::Startup].Effect, &CWhite);
-            else if (c == '1')
-                pixelRing.SetEffect(Scenes[DeviceState::Processing].Effect, &Scenes[DeviceState::Processing].color);
-            else if (c == '2')
-                pixelRing.SetEffect(Scenes[DeviceState::Good].Effect, &Scenes[DeviceState::Good].color);
-            else if (c == '3')
-                pixelRing.SetEffect(Scenes[DeviceState::Bad].Effect, &Scenes[DeviceState::Bad].color);
+            SerialUSB.print((char)c);
+            shell.ConsumeSymbol(c);
         }
     }
 
@@ -130,13 +142,12 @@ void loop() {
         if (pColorOverride != nullptr) {
             auto c = pColorOverride->GetColor();
             for (size_t i = 0; i < PixelCount; i++) {
-                    _strip.setPixelColor(i, c.red >> 2 , c.green  >> 2, c.blue  >> 2, 0);
-                }
-        }
-        else{
+                _strip.setPixelColor(i, c.red >> 2, c.green >> 2, c.blue >> 2, 0);
+            }
+        } else {
             for (size_t i = 0; i < PixelCount; i++) {
                 auto c = colors[i].GetColor();
-                _strip.setPixelColor(i, c.red >> 2 , c.green  >> 2, c.blue  >> 2, 0);
+                _strip.setPixelColor(i, c.red >> 2, c.green >> 2, c.blue >> 2, 0);
             }
         }
         _strip.show();

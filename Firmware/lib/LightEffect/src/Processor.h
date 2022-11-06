@@ -7,9 +7,9 @@
 
 #include "Color.h"
 #include "StateMachine.h"
+#include <algorithm>
 #include <stdint.h>
 #include <vector>
-#include <algorithm>
 
 namespace Effect {
 
@@ -122,8 +122,7 @@ template <unsigned LedCnt = 1> class MultiProcessor {
      * @param fadeSteps Steps count for cross fade
      */
     MultiProcessor(uint8_t const fadeSteps)
-        : _parameter{0x20, 0x20, 0, LedCount}, _effPV1(_parameter),
-          _effPV2(_parameter) {
+        : _parameter{0x20, 0x20, 0, LedCount}, _effPV1(_parameter), _effPV2(_parameter) {
 
         _EffPV = &_effPV1;
         _EffPV_old = &_effPV2;
@@ -193,8 +192,7 @@ template <unsigned LedCnt = 1> class MultiProcessor {
      * @param k scaling factor for current cross-fade
      */
     void crossFadeColors(uint8_t k) {
-        for (size_t i = 0; i < LedCnt; i++)
-        {
+        for (size_t i = 0; i < LedCnt; i++) {
             Color temp = _pColorOld[i] * k;
             _pColor[i] = _pColor[i] * (0xFF - k);
             _pColor[i] = _pColor[i] + temp;

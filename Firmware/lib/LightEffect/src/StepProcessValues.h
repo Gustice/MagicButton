@@ -16,10 +16,10 @@ namespace Effect {
  */
 struct StepProcessValues_t {
     /// @brief Reference to mutable color-container (output variable)
-    Color * color;
+    Color *color;
 
     /// @brief Reference of current color
-    const Color & pCurentColor;
+    const Color &pCurentColor;
 
     /// @brief Number of color entries
     uint8_t ColorLen;

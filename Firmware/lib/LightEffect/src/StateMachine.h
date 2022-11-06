@@ -74,7 +74,7 @@ class StateMachine {
      *  a convenient values.
      * @return Color color result
      */
-    void Tick(Color * color);
+    void Tick(Color *color);
 
     /// @brief Black out lights
     static void UpdateBlank(StepProcessValues_t &pcsParam);
@@ -90,7 +90,7 @@ class StateMachine {
     static void UpdateFlicker(StepProcessValues_t &pcsParam);
 
     /// @brief Black out all lights (for multiple pixels)
-    static void UpdateBlankAll(StepProcessValues_t &pcsParam); 
+    static void UpdateBlankAll(StepProcessValues_t &pcsParam);
     /// @brief Continuous illumination in idle intensity (for multiple pixels)
     static void UpdateIdleAll(StepProcessValues_t &pcsParam);
     /// @brief Step through a defined waveform (for multiple pixels)
