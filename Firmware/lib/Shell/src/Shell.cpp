@@ -89,32 +89,37 @@ void Shell::ProcessRaw() {}
 
 static const std::string cSetColorCmd("Set Color:");
 static const std::string cSetEffectCmd("Set Effect:");
-static const std::string cSetActionCmd("Set Action:");
-static const std::string cGetStatusCmd("Set Action:");
+static const std::string cConfigActionCmd("Config Action:");
+static const std::string cSaveCmd("Save:");
+static const std::string cGetStatusCmd("Get Status:");
+static const std::string cGetConfigCmd("Get Config:");
 
 void Shell::ProcessString(std::string &cmd) {
     if (cmd[0] == '#') { // Starts with #
         if (cmd == "#r") {
             _fpColorCb(CRed);
-        } else if (cmd == "#g") {
+        } else if (cmd == "#g")
             _fpColorCb(CGreen);
-        } else if (cmd == "#b") {
+        else if (cmd == "#b")
             _fpColorCb(CBlue);
-        } else if (cmd == "#m") {
+        else if (cmd == "#m")
             _fpColorCb(CMagenta);
-        } else if (cmd == "#c") {
+        else if (cmd == "#c")
             _fpColorCb(CCyan);
-        } else if (cmd == "#y") {
+        else if (cmd == "#y")
             _fpColorCb(CYellow);
-        } else if (cmd == "#w") {
+        else if (cmd == "#w")
             _fpColorCb(CWhite);
-        } else if (cmd == "#1") {
+        else if (cmd == "#0")
+            _fpSceneCb(0);
+        else if (cmd == "#1")
             _fpSceneCb(1);
-        } else if (cmd == "#2") {
+        else if (cmd == "#2")
             _fpSceneCb(2);
-        } else if (cmd == "#3") {
+        else if (cmd == "#3")
             _fpSceneCb(3);
-        }
+        else _stream.println("Unknown shortcut");
+
         return;
     } else if (cmd.find(cSetColorCmd) == 0) { // starts with
         int rgbw[4];
@@ -137,11 +142,24 @@ void Shell::ProcessString(std::string &cmd) {
         Color c(rgbw[0], rgbw[1], rgbw[2], rgbw[3]);
         _fpColorCb(c);
     } else if (cmd.find(cSetEffectCmd) == 0) { // starts with
-        _stream.println("Setting Effect");
-    } else if (cmd.find(cSetActionCmd) == 0) { // starts with
+        auto effect = cmd.substr(cSetEffectCmd.size());
+        if (effect == "Idle")
+            _fpSceneCb(0);
+        else if (effect == "Processing") 
+            _fpSceneCb(1);
+        else if (effect == "Good") 
+            _fpSceneCb(2);
+        else if (effect == "Bad") 
+            _fpSceneCb(3);
+        else _stream.println("Unknown Effect");
+    } else if (cmd.find(cConfigActionCmd) == 0) { // starts with
         _stream.println("Setting Action");
+    } else if (cmd == cSaveCmd) { // starts with
+        _stream.println("Saving ...");
     } else if (cmd == cGetStatusCmd) { // starts with
         _stream.println("State: ...");
+    } else if (cmd == cGetConfigCmd) {
+        _stream.println("Config: ...");
     } else {
         _stream.println("Unknown command. See help with '?' ...");
     }

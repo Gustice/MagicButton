@@ -27,6 +27,7 @@ MultiProcessor<PIXEL_COUNT> pixelRing(8);
 enum DeviceState {
     Startup = 0,
     Connected,
+    Idle,
     Processing,
     Good,
     Bad,
@@ -38,8 +39,11 @@ struct Scene {
 };
 DeviceState state = DeviceState::Startup;
 const Scene Scenes[]{
-    {DeviceState::Startup, macStartIdleAll, CWhite},  {DeviceState::Connected, macIdleAll, CCyan},
-    {DeviceState::Processing, macStdRotate, CYellow}, {DeviceState::Good, macStdPulseAll, CGreen},
+    {DeviceState::Startup, macStartIdleAll, CWhite},
+    {DeviceState::Connected, macIdleAll, CCyan},
+    {DeviceState::Idle, macIdleAll, CWhite},
+    {DeviceState::Processing, macStdRotate, CYellow},
+    {DeviceState::Good, macStdPulseAll, CGreen},
     {DeviceState::Bad, macNervousPulseAll, CRed},
 };
 Adafruit_NeoPixel _strip(PixelCount, LedOutputPin, NEO_GRBW + NEO_KHZ800);
@@ -47,6 +51,9 @@ Adafruit_NeoPixel _strip(PixelCount, LedOutputPin, NEO_GRBW + NEO_KHZ800);
 void SetColor(const Color &c) { pixelRing.SetEffect(macIdleAll, &c); }
 void SetScene(unsigned s) {
     switch (s) {
+    case 0:
+        pixelRing.SetEffect(Scenes[DeviceState::Idle].Effect, &Scenes[DeviceState::Idle].color);
+        break;
     case 1:
         pixelRing.SetEffect(Scenes[DeviceState::Processing].Effect,
                             &Scenes[DeviceState::Processing].color);
