@@ -96,32 +96,23 @@ void Shell::ProcessString(std::string &cmd) {
     if (cmd[0] == '#') { // Starts with #
         if (cmd == "#r") {
             _fpColorCb(CRed);
-        }
-        else if (cmd == "#g") {
+        } else if (cmd == "#g") {
             _fpColorCb(CGreen);
-        }
-        else if (cmd == "#b") {
+        } else if (cmd == "#b") {
             _fpColorCb(CBlue);
-        }
-        else if (cmd == "#m") {
+        } else if (cmd == "#m") {
             _fpColorCb(CMagenta);
-        }
-        else if (cmd == "#c") {
+        } else if (cmd == "#c") {
             _fpColorCb(CCyan);
-        }
-        else if (cmd == "#y") {
+        } else if (cmd == "#y") {
             _fpColorCb(CYellow);
-        }
-        else if (cmd == "#w") {
+        } else if (cmd == "#w") {
             _fpColorCb(CWhite);
-        }
-        else if (cmd == "#1") {
+        } else if (cmd == "#1") {
             _fpSceneCb(1);
-        }
-        else if (cmd == "#2") {
+        } else if (cmd == "#2") {
             _fpSceneCb(2);
-        }
-        else if (cmd == "#3") {
+        } else if (cmd == "#3") {
             _fpSceneCb(3);
         }
         return;

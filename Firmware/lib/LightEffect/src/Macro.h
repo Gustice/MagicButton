@@ -80,9 +80,8 @@ extern const WaveForm_t OffsetSlopeWave;
 /// @brief Full-Pulse:: Fading from dark to full intensity
 extern const WaveForm_t FullSlopeWave;
 
-
 /// @brief Dark - Nothing to see here (for multiple pixel)
-extern const Macro macDarkAll; 
+extern const Macro macDarkAll;
 /// @brief Continuous idle (for multiple pixel)
 extern const Macro macIdleAll;
 /// @brief Slow pulse starting from idle intensity. Appears like breathing (for multiple pixel)
@@ -95,6 +94,5 @@ extern const Macro macStartFullAll;
 extern const Macro macNervousPulseAll;
 /// @brief Slow rotating pulse over pixel-strip
 extern const Macro macStdRotate;
-
 
 } // namespace Effect
