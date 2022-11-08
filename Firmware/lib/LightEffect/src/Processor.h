@@ -114,7 +114,7 @@ class Processor {
  */
 template <unsigned LedCnt = 1> class MultiProcessor {
   public:
-    unsigned LedCount = LedCnt;
+    uint8_t LedCount = LedCnt;
 
     /**
      * @brief Constructor

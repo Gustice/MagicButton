@@ -10,7 +10,9 @@
 
 namespace Effect {
 
-const WaveForm_t EmptyWave{{0}, 1};
+const uint8_t Empty[4] = {0,0,0,0 };
+
+const WaveForm_t EmptyWave{Empty, 4};
 const WaveForm_t OffsetPulseWave{gau8_offsetPulse, cu16_TemplateLength};
 const WaveForm_t InitSlopeWave{gau8_initSlope, cu16_TemplateLength};
 const WaveForm_t OffsetSlopeWave{gau8_offsetSlope, cu16_TemplateLength};

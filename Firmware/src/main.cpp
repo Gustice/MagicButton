@@ -2,7 +2,6 @@
 #include "ClountDown.h"
 #include <Adafruit_NeoPixel.h>
 #include <Arduino.h>
-#define STM32F1
 #include "Processor.h"
 #include "Shell.h"
 #include "TimerInterrupt_Generic.h"
