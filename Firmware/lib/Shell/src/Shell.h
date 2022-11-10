@@ -3,6 +3,8 @@
 #include "Arduino.h"
 #include "Color.h"
 #include <string>
+#include "DeviceState.h"
+
 /*
     Protocol-definition for USB-CDC-Interface
     Command:
@@ -53,7 +55,7 @@ struct ValidCommands_t {
 class Shell {
   public:
     typedef void (*SetColorCb)(const Color &c);
-    typedef void (*SetSceneCb)(unsigned e);
+    typedef void (*SetSceneCb)(DeviceState e);
     Shell(Stream &stream, SetColorCb colorCb, SetSceneCb sceneCb)
         : _stream(stream), _fpColorCb(colorCb), _fpSceneCb(sceneCb) {
         _asciCommand.reserve(32);

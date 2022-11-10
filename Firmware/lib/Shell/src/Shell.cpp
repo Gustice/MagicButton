@@ -111,13 +111,13 @@ void Shell::ProcessString(std::string &cmd) {
         else if (cmd == "#w")
             _fpColorCb(CWhite);
         else if (cmd == "#0")
-            _fpSceneCb(0);
+            _fpSceneCb(DeviceState::Idle);
         else if (cmd == "#1")
-            _fpSceneCb(1);
+            _fpSceneCb(DeviceState::Processing);
         else if (cmd == "#2")
-            _fpSceneCb(2);
+            _fpSceneCb(DeviceState::Good);
         else if (cmd == "#3")
-            _fpSceneCb(3);
+            _fpSceneCb(DeviceState::Bad);
         else _stream.println("Unknown shortcut");
 
         return;
@@ -144,13 +144,13 @@ void Shell::ProcessString(std::string &cmd) {
     } else if (cmd.find(cSetEffectCmd) == 0) { // starts with
         auto effect = cmd.substr(cSetEffectCmd.size());
         if (effect == "Idle")
-            _fpSceneCb(0);
+            _fpSceneCb(DeviceState::Idle);
         else if (effect == "Processing") 
-            _fpSceneCb(1);
+            _fpSceneCb(DeviceState::Processing);
         else if (effect == "Good") 
-            _fpSceneCb(2);
+            _fpSceneCb(DeviceState::Good);
         else if (effect == "Bad") 
-            _fpSceneCb(3);
+            _fpSceneCb(DeviceState::Bad);
         else _stream.println("Unknown Effect");
     } else if (cmd.find(cConfigActionCmd) == 0) { // starts with
         _stream.println("Setting Action");
