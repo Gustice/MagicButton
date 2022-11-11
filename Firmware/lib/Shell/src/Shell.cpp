@@ -1,16 +1,16 @@
 #include "Shell.h"
 #include "Version.h"
-#include <map>
 #include <vector>
 
 using namespace RawShell;
+using namespace StringShell;
 
 void Shell::Tick(void) {
     if (_inputType == InputType_t::Raw) {
         _timeOut.Tick();
         if (_rawIdx > 0 && _timeOut.IsTimeOut()) {
             _rawIdx = 0;
-            SendRawEvent(RawEvents::ButtonEvent, "TO");
+            SendRawEvent(RawEvents::ErrorEvent, "TO");
         }
     }
 }
@@ -18,6 +18,8 @@ void Shell::Tick(void) {
 void Shell::ConsumeSymbol(int symbol) {
     if (symbol < 0) // eof symbol ...
         return;
+    if (_inputType != InputType_t::Raw)
+        _stream.print((char)symbol);
 
     char c = (char)symbol;
     if (c == '\r')
@@ -25,10 +27,12 @@ void Shell::ConsumeSymbol(int symbol) {
 
     switch (_inputType) {
     default:
-    case InputType_t::New:
+    case InputType_t::New: {
         _rawIdx = 0;
-        if (c == 0x1B) { // ESC-Sign
+        if (c == EscapeChar) { // ESC-Sign
             _inputType = InputType_t::Raw;
+            SendRawResponse(RawCommands::UndefinedCommand, EmptyMsgFlag, (const uint8_t *)"MBTN",
+                            4);
             return;
         }
 
@@ -51,20 +55,21 @@ void Shell::ConsumeSymbol(int symbol) {
 
         _asciCommand.push_back(c);
         _inputType = InputType_t::Asci;
-        break;
+    } break;
 
-    case InputType_t::Raw:
+    case InputType_t::Raw: {
         static CmdHeader_t *rawHeader = (CmdHeader_t *)_rawCommand;
-        _rawCommand[_rawIdx++] = c;
         _timeOut.Reset();
+        _rawCommand[_rawIdx++] = c;
 
-        if (_rawIdx >= (rawHeader->length + sizeof(CmdHeader_t)))
+        if (_rawIdx >= (rawHeader->length + sizeof(CmdHeader_t))) {
             ProcessRaw(rawHeader, &_rawCommand[sizeof(CmdHeader_t)],
                        (_rawIdx - sizeof(CmdHeader_t)));
-        _rawIdx = 0;
-        break;
+            _rawIdx = 0;
+        }
+    } break;
 
-    case InputType_t::Asci:
+    case InputType_t::Asci: {
         if (c == '\b') {
             _asciCommand.pop_back();
             return;
@@ -83,7 +88,7 @@ void Shell::ConsumeSymbol(int symbol) {
         }
 
         _asciCommand.push_back(c);
-        break;
+    } break;
     }
 }
 
@@ -97,25 +102,22 @@ void Shell::SetupNewLine() {
 }
 
 void Shell::PrintWelcome(void) {
-    if (_inputType == InputType_t::Raw)
+    if (_inputType == InputType_t::Raw) {
+        SendRawResponse(RawCommands::UndefinedCommand, EmptyMsgFlag, (const uint8_t *)"MBTN", 4);
         return;
+    }
 
     _stream.println("** Magic Button Shell **");
     _stream.println("* Get Help with typen ?-Symbol");
     SetupNewLine();
 }
 
-static const std::string cGetVersion("Get Version:");
-static const std::string cSetColorCmd("Set Color:");
-static const std::string cSetEffectCmd("Set Effect:");
-static const std::string cGetStatusCmd("Get Status:");
-
 void Shell::PrintHelp(void) {
     if (_inputType == InputType_t::Raw)
         return;
 
     _stream.println("** Magic Button Shell HELP **");
-    _stream.println("* Commands: ");
+    _stream.println("* String-Commands: ");
     _stream.printf("* '%s' -> Prints version\n", cGetVersion.c_str());
     _stream.printf("* '#x' -> Command-Shortcut for tests\n");
     _stream.printf("*      Color-Commands: #r #g #b #c #m #y #w\n");
@@ -136,32 +138,6 @@ void Shell::PrintHelp(void) {
     _stream.println("* The device can be set to raw-command mode.");
     _stream.println("* The first escape-sign that is received turns the shell of");
 }
-
-const std::map<std::string, const Color &> ColorMap{
-    {"r", CRed},  {"g", CGreen},  {"b", CBlue},  {"m", CMagenta},
-    {"c", CCyan}, {"y", CYellow}, {"w", CWhite},
-};
-const std::map<std::string, VisualizationSate> InputToStateMap{
-    {"0", VisualizationSate::Idle},    {"1", VisualizationSate::Processing},
-    {"2", VisualizationSate::Good},    {"3", VisualizationSate::Bad},
-    {"Idle", VisualizationSate::Idle}, {"Processing", VisualizationSate::Processing},
-    {"Good", VisualizationSate::Good}, {"Bad", VisualizationSate::Bad},
-};
-
-const std::map<VisualizationSate, std::string> StateToEffectMap{
-    {VisualizationSate::Startup, "Startup"},
-    {VisualizationSate::Connected, "Connected"},
-    {VisualizationSate::Idle, "Idle"},
-    {VisualizationSate::Processing, "Processing"},
-    {VisualizationSate::Good, "Good"},
-    {VisualizationSate::Bad, "Bad"},
-};
-const std::map<Button::State, std::string> ButtonStateToStringMap{
-    {Button::State::Idle, "Idle"},
-    {Button::State::Pressed, "Pressed"},
-    {Button::State::Holding, "Holding"},
-    {Button::State::Released, "Released"},
-};
 
 void Shell::ProcessString(const std::string &cmd) {
     if (cmd[0] == '#' && cmd.size() == 2) {
@@ -189,36 +165,14 @@ void Shell::ProcessString(const std::string &cmd) {
         } else
             PrintError("Unknown Effect");
     } else if (cmd == cGetStatusCmd) {
-        const std::string & b = ButtonStateToStringMap.at(_device.ButtonState);
-        const std::string & e = StateToEffectMap.at(_device.Visualization);
+        const std::string &b = ButtonStateToStringMap.at(_device.ButtonState);
+        const std::string &e = StateToEffectMap.at(_device.Visualization);
         std::string state = std::string("State:Btn=") + b + ";" + "Effect=" + e + ";";
         PrintResponse(state);
     } else {
         PrintError("Unknown command. See help with '?' ...");
     }
 }
-
-const CmdFlags_t EmptyMsgFlag = {
-    .spare = 0,
-    .eventBit = 0,
-    .errorBit = 0,
-};
-
-const CmdFlags_t ErrorEventMsgFlag = {
-    .spare = 0,
-    .eventBit = 1,
-    .errorBit = 1,
-};
-const CmdFlags_t EventMsgFlag = {
-    .spare = 0,
-    .eventBit = 1,
-    .errorBit = 0,
-};
-const CmdFlags_t ErrorMsgFlag = {
-    .spare = 0,
-    .eventBit = 1,
-    .errorBit = 0,
-};
 
 void Shell::ProcessRaw(CmdHeader_t *header, uint8_t *payload, unsigned length) {
     if (header->command <= UndefinedCommand || header->command >= RawCommands::RawCommandCount) {
@@ -238,6 +192,7 @@ void Shell::ProcessRaw(CmdHeader_t *header, uint8_t *payload, unsigned length) {
         }
         Color color(payload[0], payload[1], payload[2], payload[3]);
         _fpColorCb(color);
+        SendRawResponse(cmd, DoneMsgFlag, payload, 4);
     } break;
     case RawCommands::SetEffect: {
         uint8_t eff = payload[0];
@@ -246,6 +201,7 @@ void Shell::ProcessRaw(CmdHeader_t *header, uint8_t *payload, unsigned length) {
             return;
         }
         _fpSceneCb((VisualizationSate)eff);
+        SendRawResponse(cmd, DoneMsgFlag, (const uint8_t *)&_device.Visualization, 1);
     } break;
     case RawCommands::GetStatus: {
         uint8_t pay[2]{(uint8_t)_device.ButtonState, (uint8_t)_device.Visualization};
@@ -257,20 +213,32 @@ void Shell::ProcessRaw(CmdHeader_t *header, uint8_t *payload, unsigned length) {
 }
 
 void Shell::SendButtonEvent(Button::State state) {
-    if (_inputType == InputType_t::Raw)
-        return;
+    if (_inputType == InputType_t::Raw) {
+        switch (state) {
+        case Button::State::Pressed:
+            SendRawEvent(RawEvents::ButtonEvent, "R");
+            break;
 
-    switch (state) {
-    case Button::State::Pressed:
-        PrintEvent("Btn:L->H");
-        break;
+        case Button::State::Released:
+            SendRawEvent(RawEvents::ButtonEvent, "F");
+            break;
 
-    case Button::State::Released:
-        PrintEvent("Btn:H->L");
-        break;
+        default:
+            break;
+        }
+    } else {
+        switch (state) {
+        case Button::State::Pressed:
+            PrintEvent("Btn:L->H");
+            break;
 
-    default:
-        break;
+        case Button::State::Released:
+            PrintEvent("Btn:H->L");
+            break;
+
+        default:
+            break;
+        }
     }
 }
 

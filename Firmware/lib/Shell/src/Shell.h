@@ -26,11 +26,13 @@
 #include "Color.h"
 #include "DeviceState.h"
 #include "RawForm.h"
+#include "StringForm.h"
 #include "TimeOut.h"
 #include <string>
 
 class Shell {
   public:
+    static const char EscapeChar = 0x1B;
     typedef void (*SetColorCb)(const Color &c);
     typedef void (*SetSceneCb)(VisualizationSate e);
     Shell(Stream &stream, const DeviceState &device, SetColorCb colorCb, SetSceneCb sceneCb)
@@ -56,7 +58,7 @@ class Shell {
         Raw, // Latches in this mode
     };
 
-    unsigned TimeOutLimit = 50;
+    unsigned TimeOutLimit = 150;
     Stream &_stream;
     const DeviceState &_device;
     SetColorCb _fpColorCb;

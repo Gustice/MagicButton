@@ -63,13 +63,17 @@ void loop() {
         _device.Visualization = VisualizationSate::Startup;
         _pixelRing.SetEffect(macStartIdleAll, &CWhite);
         // }
+
+        if (SerialUSB.available()) {
+            if (SerialUSB.peek() == Shell::EscapeChar)
+                _shell.ConsumeSymbol(SerialUSB.read());
+                // @todo shall we discard incoming characters in this case?
+        }
     }
 
     if (SerialUSB) {
         if (SerialUSB.available()) {
-            int c = SerialUSB.read();
-            SerialUSB.print((char)c);
-            _shell.ConsumeSymbol(c);
+            _shell.ConsumeSymbol(SerialUSB.read());
         }
     }
 
@@ -93,7 +97,7 @@ void loop() {
 
     if (_ledTick.GetVolatileFlag()) {
         setDebugPin(HIGH);
-        const Color * colors = _pixelRing.Tick();
+        const Color *colors = _pixelRing.Tick();
         if (pColorOverride != nullptr) {
             Color::Rgbw_t c = pColorOverride->GetColor();
             for (size_t i = 0; i < PixelCount; i++) {
@@ -110,9 +114,10 @@ void loop() {
     }
 }
 
-void SetColor(const Color &color) { 
+void SetColor(const Color &color) {
     _shell.PrintResponse("Setting Color");
-    _pixelRing.SetEffect(macIdleAll, &color); }
+    _pixelRing.SetEffect(macIdleAll, &color);
+}
 void SetScene(VisualizationSate scene) {
     _shell.PrintResponse("Setting Effect");
     _device.Visualization = scene;
