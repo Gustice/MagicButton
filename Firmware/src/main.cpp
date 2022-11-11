@@ -109,14 +109,18 @@ void loop() {
     }
 }
 
-void SetColor(const Color &c) { _pixelRing.SetEffect(macIdleAll, &c); }
+void SetColor(const Color &c) { 
+    _shell.PrintResponse("Setting Color");
+    _pixelRing.SetEffect(macIdleAll, &c); }
 void SetScene(VisualizationSate s) {
+    _shell.PrintResponse("Setting Effect");
     const Scene &scn = Scenes.at(s);
     _pixelRing.SetEffect(scn.Effect, &scn.color);
 }
 void cyclicInterruptRoutine() {
     _ledTick.Tick();
     _buttonTick.Tick();
+    _shell.Tick();
 }
 int readButtonPin(void) { return digitalRead(ButtonPin); }
 void setDebugPin(int value) { digitalWrite(DebugPin, value); }

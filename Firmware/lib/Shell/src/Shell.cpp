@@ -3,9 +3,21 @@
 #include <map>
 #include <vector>
 
+using namespace RawShell;
+
+void Shell::Tick(void) {
+    if (_inputType == InputType_t::Raw) {
+        _timeOut.Tick();
+        if (_rawIdx > 0 && _timeOut.IsTimeOut()) {
+            _rawIdx = 0;
+            SendRawEvent(RawEvents::ButtonEvent, "TO");
+        }
+    }
+}
+
 void Shell::ConsumeSymbol(int symbol) {
     if (symbol < 0) // eof symbol ...
-        return;     // todo Tidy-Up here
+        return;
 
     char c = (char)symbol;
     if (c == '\r')
@@ -27,7 +39,7 @@ void Shell::ConsumeSymbol(int symbol) {
         }
 
         if (c < ' ' || c > '~') {
-            _stream.println("\nunknown character -> discarding line ..");
+            PrintError("\nunknown character -> discarding line ..");
             SetupNewLine();
             return;
         }
@@ -37,8 +49,14 @@ void Shell::ConsumeSymbol(int symbol) {
         break;
 
     case InputType_t::Raw:
+        static CmdHeader_t *rawHeader = (CmdHeader_t *)_rawCommand;
         _rawCommand[_rawIdx++] = c;
-        ProcessRaw();
+        _timeOut.Reset();
+
+        if (_rawIdx >= (rawHeader->length + sizeof(CmdHeader_t)))
+            ProcessRaw(rawHeader, &_rawCommand[sizeof(CmdHeader_t)],
+                       (_rawIdx - sizeof(CmdHeader_t)));
+        _rawIdx = 0;
         break;
 
     case InputType_t::Asci:
@@ -54,7 +72,7 @@ void Shell::ConsumeSymbol(int symbol) {
         }
 
         if (c < ' ' || c > '~') {
-            _stream.println("\nunknown character -> discarding line ..");
+            PrintError("\nunknown character -> discarding line ..");
             SetupNewLine();
             return;
         }
@@ -65,32 +83,53 @@ void Shell::ConsumeSymbol(int symbol) {
 }
 
 void Shell::SetupNewLine() {
+    if (_inputType == InputType_t::Raw)
+        return;
+
     _asciCommand = "";
     _stream.print("MB > ");
     _inputType = InputType_t::New;
 }
 
 void Shell::PrintWelcome(void) {
+    if (_inputType == InputType_t::Raw)
+        return;
+
     _stream.println("** Magic Button Shell **");
     _stream.println("* Get Help with typen ?-Symbol");
     SetupNewLine();
 }
 
-void Shell::ProcessRaw() {}
 static const std::string cGetVersion("Get Version:");
 static const std::string cSetColorCmd("Set Color:");
 static const std::string cSetEffectCmd("Set Effect:");
-static const std::string cConfigActionCmd("Config Action:");
 static const std::string cGetStatusCmd("Get Status:");
 
 void Shell::PrintHelp(void) {
+    if (_inputType == InputType_t::Raw)
+        return;
+
     _stream.println("** Magic Button Shell HELP **");
     _stream.println("* Commands: ");
     _stream.printf("* '%s' -> Prints version\n", cGetVersion.c_str());
-    _stream.println("* ... ");
+    _stream.printf("* '#x' -> Command-Shortcut for tests\n");
+    _stream.printf("*      Color-Commands: #r #g #b #c #m #y #w\n");
+    _stream.printf("*      Scene-Commands: #0 #1 #2 #3\n");
+    _stream.printf("* '%srr,gg,bb,ww' -> Sets Color to given value\n", cSetColorCmd.c_str());
+    _stream.printf("*      Value must be hex-formatted and match given pattern\n");
+    _stream.printf("* '%s...' -> Sets Visual effect\n", cSetEffectCmd.c_str());
+    _stream.printf("*      Scene-Commands: Idle Processing Good Bad\n");
+    _stream.printf("*          Idle \n");
+    _stream.printf("*          Processing \n");
+    _stream.printf("*          Good \n");
+    _stream.printf("*          Bad \n");
+    _stream.printf("* '%s' -> Get Status\n", cGetStatusCmd.c_str());
+    _stream.printf("*      Status will be printed in form:\n");
+    _stream.printf("*      'State:Btn=<state>;Effect=<state>;'\n");
+    _stream.println("* ");
     _stream.println("* RAW-Commands: ");
-    _stream.println("* ... ");
-    _stream.println("* ... ");
+    _stream.println("* The device can be set to raw-command mode.");
+    _stream.println("* The first escape-sign that is received turns the shell of");
     SetupNewLine();
 }
 
@@ -98,62 +137,123 @@ const std::map<std::string, const Color &> ColorMap{
     {"r", CRed},  {"g", CGreen},  {"b", CBlue},  {"m", CMagenta},
     {"c", CCyan}, {"y", CYellow}, {"w", CWhite},
 };
-const std::map<std::string, VisualizationSate> SceneNumToStateMap{
+const std::map<std::string, VisualizationSate> InputToStateMap{
     {"0", VisualizationSate::Idle},    {"1", VisualizationSate::Processing},
     {"2", VisualizationSate::Good},    {"3", VisualizationSate::Bad},
     {"Idle", VisualizationSate::Idle}, {"Processing", VisualizationSate::Processing},
     {"Good", VisualizationSate::Good}, {"Bad", VisualizationSate::Bad},
 };
 
-void Shell::ProcessString(std::string &cmd) {
+const std::map<VisualizationSate, std::string> StateToEffectMap{
+    {VisualizationSate::Idle, "Idle"},
+    {VisualizationSate::Processing, "Processing"},
+    {VisualizationSate::Good, "Good"},
+    {VisualizationSate::Bad, "Bad"},
+};
+const std::map<Button::State, std::string> ButtonStateToStringMap{
+    {Button::State::Idle, "Idle"},
+    {Button::State::Pressed, "Pressed"},
+    {Button::State::Holding, "Holding"},
+    {Button::State::Released, "Released"},
+};
+
+void Shell::ProcessString(const std::string &cmd) {
     if (cmd[0] == '#' && cmd.size() == 2) {
         PrintResponse("Shortcut detected");
         std::string par = cmd.substr(1);
         if (ColorMap.count(par)) {
             _fpColorCb(ColorMap.at(par));
-        } else if (SceneNumToStateMap.count(par)) {
-            _fpSceneCb(SceneNumToStateMap.at(par));
+        } else if (InputToStateMap.count(par)) {
+            _fpSceneCb(InputToStateMap.at(par));
         } else
             PrintError("Unknown shortcut");
         return;
     } else if (cmd.find(cGetVersion) == 0) {
         PrintResponse(std::string(DeviceString) + " " + VersionString);
     } else if (cmd.find(cSetColorCmd) == 0) {
-        int rgbw[4];
-        int start = cSetColorCmd.size();
-        for (size_t i = 0; i < 4; i++) {
-            std::size_t p = cmd.find(",", start);
-            if (p != std::string::npos) {
-                rgbw[i] = std::stoi(cmd.substr(start, p - start), 0, 16);
-                start = p + 1;
-            } else {
-                if (i == 3) { // last element
-                    rgbw[i] = std::stoi(cmd.substr(start), 0, 16);
-                } else {
-                    _stream.println("Four comma-separated color-values expected. Input discared!");
-                    return;
-                }
-            }
-        }
-        _stream.println("Setting Color");
-        Color c(rgbw[0], rgbw[1], rgbw[2], rgbw[3]);
+        std::string par = cmd.substr(cSetColorCmd.size());
+        Color c;
+        if (!ResolveColorValueString(par, c))
+            return;
         _fpColorCb(c);
     } else if (cmd.find(cSetEffectCmd) == 0) {
         std::string par = cmd.substr(cSetEffectCmd.size());
-        if (SceneNumToStateMap.count(par)) {
-            _fpSceneCb(SceneNumToStateMap.at(par));
+        if (InputToStateMap.count(par)) {
+            _fpSceneCb(InputToStateMap.at(par));
         } else
-            _stream.println("Unknown Effect");
-    } else if (cmd.find(cConfigActionCmd) == 0) {
-        _stream.println("Setting Action");
+            PrintError("Unknown Effect");
     } else if (cmd == cGetStatusCmd) {
-        _stream.println("State: ...");
+        std::string btn = ButtonStateToStringMap.at(_device.ButtonState);
+        std::string eff = StateToEffectMap.at(_device.Visualization);
+        std::string state = std::string("State:Btn=") + btn + ";" + "Effect=" + eff + ";";
+        PrintResponse(state);
     } else {
-        _stream.println("Unknown command. See help with '?' ...");
+        PrintError("Unknown command. See help with '?' ...");
+    }
+}
+
+const CmdFlags_t EmptyMsgFlag = {
+    .spare = 0,
+    .eventBit = 0,
+    .errorBit = 0,
+};
+
+const CmdFlags_t ErrorEventMsgFlag = {
+    .spare = 0,
+    .eventBit = 1,
+    .errorBit = 1,
+};
+const CmdFlags_t EventMsgFlag = {
+    .spare = 0,
+    .eventBit = 1,
+    .errorBit = 0,
+};
+const CmdFlags_t ErrorMsgFlag = {
+    .spare = 0,
+    .eventBit = 1,
+    .errorBit = 0,
+};
+
+void Shell::ProcessRaw(CmdHeader_t *header, uint8_t *payload, unsigned length) {
+    if (header->command <= UndefinedCommand || header->command >= RawCommands::RawCommandCount) {
+        SendRawResponse(UndefinedCommand, ErrorMsgFlag, (const uint8_t *)"UC", 2);
+        return;
+    }
+    RawCommands cmd = (RawCommands)header->command;
+
+    switch (cmd) {
+    case RawCommands::GetVersion: {
+        SendRawResponse(cmd, EmptyMsgFlag, (const uint8_t *)VersionString, strlen(VersionString));
+    } break;
+    case RawCommands::SetColor: {
+        if (length < 4) {
+            SendRawResponse(cmd, ErrorMsgFlag, (const uint8_t *)"TS", 2);
+            return;
+        }
+        Color color(payload[0], payload[1], payload[2], payload[3]);
+        _fpColorCb(color);
+    } break;
+    case RawCommands::SetEffect: {
+        uint8_t eff = payload[0];
+        if (eff <= VisualizationSate::Startup || eff >= VisualizationSate::NumberStates) {
+            SendRawResponse(cmd, ErrorMsgFlag, (const uint8_t *)"UE", 2);
+            return;
+        }
+        _fpSceneCb((VisualizationSate)eff);
+    } break;
+    case RawCommands::GetStatus: {
+        uint8_t pay[2]{(uint8_t)_device.ButtonState, (uint8_t)_device.Visualization};
+        SendRawResponse(cmd, EmptyMsgFlag, pay, sizeof(pay));
+    } break;
+    default: 
+        SendRawResponse(UndefinedCommand, ErrorMsgFlag, (const uint8_t *)"EX", 2);
     }
 }
 
 void Shell::SendButtonEvent(Button::State state) {
+    if (_inputType == InputType_t::Raw)
+        return;
+
     switch (state) {
     case Button::State::Pressed:
         PrintEvent("Btn:L->H");
@@ -168,115 +268,71 @@ void Shell::SendButtonEvent(Button::State state) {
     }
 }
 
-void Shell::PrintEvent(std::string msg) {
+void Shell::PrintEvent(const std::string &msg) {
+    if (_inputType == InputType_t::Raw)
+        return;
     _stream.print(":");
     _stream.println(msg.c_str());
 }
 
-void Shell::PrintError(std::string msg) {
+void Shell::PrintError(const std::string &msg) {
+    if (_inputType == InputType_t::Raw)
+        return;
+
     _stream.print("!");
     _stream.println(msg.c_str());
 }
 
-void Shell::PrintResponse(std::string msg) {
+void Shell::PrintResponse(const std::string &msg) {
+    if (_inputType == InputType_t::Raw)
+        return;
+
     _stream.print("<");
     _stream.println(msg.c_str());
 }
 
-// ValidCommands_t ServiceCommands[] = {
-//     {SET_MODE, sizeof(cmdMode_t)},
-//     {GET_INPUTS, sizeof(cmdInput_t)},
-// };f
-// static const uint8_t CommandsCnt = sizeof(ServiceCommands) / sizeof(ServiceCommands[0]);
+bool Shell::ResolveColorValueString(std::string &code, Color &color) {
+    int rgbw[4];
+    int start = 0;
+    for (size_t i = 0; i < 4; i++) {
+        std::size_t p = code.find(",", start);
+        if (p != std::string::npos) {
+            rgbw[i] = std::stoi(code.substr(start, p - start), 0, 16);
+            start = p + 1;
+        } else {
+            if (i == 3) { // last element
+                rgbw[i] = std::stoi(code.substr(start), 0, 16);
+            } else {
+                PrintError("Four comma-separated color-values expected. Input discared!");
+                return false;
+            }
+        }
+    }
+    color.SetColor(rgbw[0], rgbw[1], rgbw[2], rgbw[3]);
+    return true;
+}
 
-// static uint16_t u16_ExtBuffSize = 0u;
+void Shell::SendRawEvent(RawEvents type, const std::string &code) {
+    _stream.write((uint8_t)type);
+    uint8_t flags = 0;
 
-// // @pararm[in] u16_BufferSize	external Buffer Size for messages available
-// void SER_Setup(uint16_t u16_BufferSize) { u16_ExtBuffSize = u16_BufferSize; }
+    switch (type) {
+    case RawEvents::ButtonEvent:
+        flags = *((const uint8_t *)&EventMsgFlag);
+        break;
+    case RawEvents::ErrorEvent:
+        flags = *((const uint8_t *)&ErrorEventMsgFlag);
+        break;
+    }
+    _stream.write(flags);
+    _stream.write(code.size());
+    _stream.print(code.c_str());
+}
 
-// DevInData_t DevIn;
-// eEffects SetMode = Eff_Dark;
-// bool newByte = false;
-
-// #define BUFFER_SIZE 8
-// static char au8_msgBuffer[BUFFER_SIZE];
-// static int timeOut = 0;
-// const int TimeOutThreshold = 100;
-
-// const int HeaderSize = sizeof(cmdHeader_t);
-
-// void serialEvent() { newByte = true; }
-
-// void SER_ProcessCOM(void) {
-//     static bool HeaderReceived = false;
-
-//     if (!HeaderReceived) {
-//         if (SerialUSB.available() <= 0)
-//             timeOut = 0;
-
-//         if (SerialUSB.available() >= HeaderSize) {
-//             SerialUSB.readBytes(&au8_msgBuffer[0], HeaderSize);
-//             HeaderReceived = true;
-//         }
-//     } else {
-//         cmdHeader_t *vp_Cmd = (cmdHeader_t *)au8_msgBuffer;
-//         int length = sizeof(cmdHeader_t) + vp_Cmd->u8_length;
-
-//         if (SerialUSB.available() >= length) {
-//             SerialUSB.readBytes(&au8_msgBuffer[HeaderSize], length);
-//             HeaderReceived = false;
-
-//             int toSend = ProcessData(&au8_msgBuffer[0], length + HeaderSize);
-//             SerialUSB.write(au8_msgBuffer, toSend);
-//         }
-//     }
-
-//     if (timeOut++ > TimeOutThreshold) {
-//         HeaderReceived = false;
-//         while (SerialUSB.available() > 0) {
-//             SerialUSB.read();
-//         }
-//         timeOut = 0;
-//     }
-// }
-
-// void Shell::ProcessRaw() {
-//     cmdHeader_t *vp_Cmd = (cmdHeader_t *)_rawCommand;
-//     unsigned replyLength = _rawIdx;
-
-//     uint8_t cmd = vp_Cmd->u8_cmd;
-
-//     if ((cmd < CommandsCnt) && (ServiceCommands[cmd].u16_Length <= _rawIdx)) {
-//         switch (cmd) {
-//         // Set Mode-Command
-//         case SET_MODE: {
-//             enum eEffects tmp = (eEffects)(((cmdMode_t *)vp_Cmd)->u8_Mode);
-//             if ((uint8_t)tmp < (uint8_t)Eff_NumEffects) {
-//                 SetMode = tmp;
-//             }
-//         } break;
-
-//         // GetInputs
-//         case GET_INPUTS: {
-//             DevInData_t *pdata = &(((cmdInput_t *)vp_Cmd)->IN);
-//             memcpy(pdata, &DevIn, sizeof(DevInData_t));
-//         } break;
-
-//         default:
-//             replyLength = 0u;
-//             break;
-//         }
-//     }
-//     return replyLength;
-// }
-
-// void SER_SendInput(uint8_t state) {
-//     if (!Serial)
-//         return;
-
-//     uint8_t buffer[3];
-//     buffer[0] = (uint8_t)ASY_INPUT;
-//     buffer[1] = 0x01;
-//     buffer[2] = state;
-//     SerialUSB.write(buffer, sizeof(buffer));
-// }
+void Shell::SendRawResponse(RawCommands type, const CmdFlags_t &flags, const uint8_t *buffer,
+                            unsigned length) {
+    _stream.write((uint8_t)type);
+    _stream.write(*((const uint8_t *)&flags));
+    _stream.write(length);
+    _stream.write(buffer, length);
+}

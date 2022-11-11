@@ -16,7 +16,9 @@ class CountDown {
         if (!_pFlag)
             return false;
 
-        _pFlag = false;
+        // Reset _pFlag in any case, so it only be consumed once
+        //  hence volatile
+        _pFlag = false; 
         return true;
     }
 
