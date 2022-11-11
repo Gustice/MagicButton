@@ -19,10 +19,10 @@ constexpr unsigned PixelCount = 16;
 
 /* Forward declarations */
 int readButtonPin(void);
-void SetColor(const Color &c);
-void SetScene(VisualizationSate s);
+void SetColor(const Color &color);
+void SetScene(VisualizationSate scene);
 void setDebugPin(int value);
-void cyclicInterruptRoutine();
+void cyclicInterruptRoutine(void);
 
 STM32Timer _iTimer(TIM1);
 static Button _button(readButtonPin, HIGH);
@@ -74,7 +74,8 @@ void loop() {
     }
 
     if (_buttonTick.GetVolatileFlag()) {
-        switch (_button.Eval()) {
+        _device.ButtonState = _button.Eval();
+        switch (_device.ButtonState) {
         case Button::State::Pressed:
             _shell.SendButtonEvent(Button::State::Pressed);
             pColorOverride = &CRed;
@@ -109,15 +110,16 @@ void loop() {
     }
 }
 
-void SetColor(const Color &c) { 
+void SetColor(const Color &color) { 
     _shell.PrintResponse("Setting Color");
-    _pixelRing.SetEffect(macIdleAll, &c); }
-void SetScene(VisualizationSate s) {
+    _pixelRing.SetEffect(macIdleAll, &color); }
+void SetScene(VisualizationSate scene) {
     _shell.PrintResponse("Setting Effect");
-    const Scene &scn = Scenes.at(s);
-    _pixelRing.SetEffect(scn.Effect, &scn.color);
+    _device.Visualization = scene;
+    const Scene &s = Scenes.at(scene);
+    _pixelRing.SetEffect(s.Effect, &s.color);
 }
-void cyclicInterruptRoutine() {
+void cyclicInterruptRoutine(void) {
     _ledTick.Tick();
     _buttonTick.Tick();
     _shell.Tick();

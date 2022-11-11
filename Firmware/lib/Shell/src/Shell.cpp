@@ -27,11 +27,16 @@ void Shell::ConsumeSymbol(int symbol) {
     default:
     case InputType_t::New:
         _rawIdx = 0;
-        if (c == 0x1B) // ESC-Sign
+        if (c == 0x1B) { // ESC-Sign
             _inputType = InputType_t::Raw;
+            return;
+        }
 
-        if (c == '?')
+        if (c == '?') {
             PrintHelp();
+            SetupNewLine();
+            return;
+        }
 
         if (c == '\n') {
             SetupNewLine();
@@ -119,10 +124,10 @@ void Shell::PrintHelp(void) {
     _stream.printf("*      Value must be hex-formatted and match given pattern\n");
     _stream.printf("* '%s...' -> Sets Visual effect\n", cSetEffectCmd.c_str());
     _stream.printf("*      Scene-Commands: Idle Processing Good Bad\n");
-    _stream.printf("*          Idle \n");
-    _stream.printf("*          Processing \n");
-    _stream.printf("*          Good \n");
-    _stream.printf("*          Bad \n");
+    _stream.printf("*          Idle: Intended to signal idle state \n");
+    _stream.printf("*          Processing: Intended for busy-signal \n");
+    _stream.printf("*          Good: Intended for successful-signal \n");
+    _stream.printf("*          Bad: Intended for failed-signal \n");
     _stream.printf("* '%s' -> Get Status\n", cGetStatusCmd.c_str());
     _stream.printf("*      Status will be printed in form:\n");
     _stream.printf("*      'State:Btn=<state>;Effect=<state>;'\n");
@@ -130,7 +135,6 @@ void Shell::PrintHelp(void) {
     _stream.println("* RAW-Commands: ");
     _stream.println("* The device can be set to raw-command mode.");
     _stream.println("* The first escape-sign that is received turns the shell of");
-    SetupNewLine();
 }
 
 const std::map<std::string, const Color &> ColorMap{
@@ -145,6 +149,8 @@ const std::map<std::string, VisualizationSate> InputToStateMap{
 };
 
 const std::map<VisualizationSate, std::string> StateToEffectMap{
+    {VisualizationSate::Startup, "Startup"},
+    {VisualizationSate::Connected, "Connected"},
     {VisualizationSate::Idle, "Idle"},
     {VisualizationSate::Processing, "Processing"},
     {VisualizationSate::Good, "Good"},
@@ -183,9 +189,9 @@ void Shell::ProcessString(const std::string &cmd) {
         } else
             PrintError("Unknown Effect");
     } else if (cmd == cGetStatusCmd) {
-        std::string btn = ButtonStateToStringMap.at(_device.ButtonState);
-        std::string eff = StateToEffectMap.at(_device.Visualization);
-        std::string state = std::string("State:Btn=") + btn + ";" + "Effect=" + eff + ";";
+        const std::string & b = ButtonStateToStringMap.at(_device.ButtonState);
+        const std::string & e = StateToEffectMap.at(_device.Visualization);
+        std::string state = std::string("State:Btn=") + b + ";" + "Effect=" + e + ";";
         PrintResponse(state);
     } else {
         PrintError("Unknown command. See help with '?' ...");
@@ -245,7 +251,7 @@ void Shell::ProcessRaw(CmdHeader_t *header, uint8_t *payload, unsigned length) {
         uint8_t pay[2]{(uint8_t)_device.ButtonState, (uint8_t)_device.Visualization};
         SendRawResponse(cmd, EmptyMsgFlag, pay, sizeof(pay));
     } break;
-    default: 
+    default:
         SendRawResponse(UndefinedCommand, ErrorMsgFlag, (const uint8_t *)"EX", 2);
     }
 }
