@@ -2,12 +2,12 @@
 
 namespace Effect {
 
-const std::map<DeviceState, Scene> Scenes {
-    {DeviceState::Startup, Scene{macStartIdleAll, CWhite}},
-    {DeviceState::Connected, Scene{macIdleAll, CCyan}},
-    {DeviceState::Idle, Scene{macIdleAll, CWhite}},
-    {DeviceState::Processing, Scene{macStdRotate, CYellow}},
-    {DeviceState::Good, Scene{macStdPulseAll, CGreen}},
-    {DeviceState::Bad, Scene{macNervousPulseAll, CRed}},
+const std::map<VisualizationSate, Scene> Scenes {
+    {VisualizationSate::Startup, Scene{macStartIdleAll, CWhite}},
+    {VisualizationSate::Connected, Scene{macIdleAll, CCyan}},
+    {VisualizationSate::Idle, Scene{macIdleAll, CWhite}},
+    {VisualizationSate::Processing, Scene{macStdRotate, CYellow}},
+    {VisualizationSate::Good, Scene{macStdPulseAll, CGreen}},
+    {VisualizationSate::Bad, Scene{macNervousPulseAll, CRed}},
 };
 }

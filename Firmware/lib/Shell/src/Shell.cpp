@@ -1,4 +1,6 @@
 #include "Shell.h"
+#include "Version.h"
+#include <map>
 #include <vector>
 
 void Shell::ConsumeSymbol(int symbol) {
@@ -40,7 +42,7 @@ void Shell::ConsumeSymbol(int symbol) {
         break;
 
     case InputType_t::Asci:
-        if (c == '\b') { // Backspace
+        if (c == '\b') {
             _asciCommand.pop_back();
             return;
         }
@@ -74,10 +76,17 @@ void Shell::PrintWelcome(void) {
     SetupNewLine();
 }
 
+void Shell::ProcessRaw() {}
+static const std::string cGetVersion("Get Version:");
+static const std::string cSetColorCmd("Set Color:");
+static const std::string cSetEffectCmd("Set Effect:");
+static const std::string cConfigActionCmd("Config Action:");
+static const std::string cGetStatusCmd("Get Status:");
+
 void Shell::PrintHelp(void) {
     _stream.println("** Magic Button Shell HELP **");
     _stream.println("* Commands: ");
-    _stream.println("* ... ");
+    _stream.printf("* '%s' -> Prints version\n", cGetVersion.c_str());
     _stream.println("* ... ");
     _stream.println("* RAW-Commands: ");
     _stream.println("* ... ");
@@ -85,47 +94,35 @@ void Shell::PrintHelp(void) {
     SetupNewLine();
 }
 
-void Shell::ProcessRaw() {}
-
-static const std::string cSetColorCmd("Set Color:");
-static const std::string cSetEffectCmd("Set Effect:");
-static const std::string cConfigActionCmd("Config Action:");
-static const std::string cSaveCmd("Save:");
-static const std::string cGetStatusCmd("Get Status:");
-static const std::string cGetConfigCmd("Get Config:");
+const std::map<std::string, const Color &> ColorMap{
+    {"r", CRed},  {"g", CGreen},  {"b", CBlue},  {"m", CMagenta},
+    {"c", CCyan}, {"y", CYellow}, {"w", CWhite},
+};
+const std::map<std::string, VisualizationSate> SceneNumToStateMap{
+    {"0", VisualizationSate::Idle},    {"1", VisualizationSate::Processing},
+    {"2", VisualizationSate::Good},    {"3", VisualizationSate::Bad},
+    {"Idle", VisualizationSate::Idle}, {"Processing", VisualizationSate::Processing},
+    {"Good", VisualizationSate::Good}, {"Bad", VisualizationSate::Bad},
+};
 
 void Shell::ProcessString(std::string &cmd) {
-    if (cmd[0] == '#') { // Starts with #
-        if (cmd == "#r") {
-            _fpColorCb(CRed);
-        } else if (cmd == "#g")
-            _fpColorCb(CGreen);
-        else if (cmd == "#b")
-            _fpColorCb(CBlue);
-        else if (cmd == "#m")
-            _fpColorCb(CMagenta);
-        else if (cmd == "#c")
-            _fpColorCb(CCyan);
-        else if (cmd == "#y")
-            _fpColorCb(CYellow);
-        else if (cmd == "#w")
-            _fpColorCb(CWhite);
-        else if (cmd == "#0")
-            _fpSceneCb(DeviceState::Idle);
-        else if (cmd == "#1")
-            _fpSceneCb(DeviceState::Processing);
-        else if (cmd == "#2")
-            _fpSceneCb(DeviceState::Good);
-        else if (cmd == "#3")
-            _fpSceneCb(DeviceState::Bad);
-        else _stream.println("Unknown shortcut");
-
+    if (cmd[0] == '#' && cmd.size() == 2) {
+        PrintResponse("Shortcut detected");
+        std::string par = cmd.substr(1);
+        if (ColorMap.count(par)) {
+            _fpColorCb(ColorMap.at(par));
+        } else if (SceneNumToStateMap.count(par)) {
+            _fpSceneCb(SceneNumToStateMap.at(par));
+        } else
+            PrintError("Unknown shortcut");
         return;
-    } else if (cmd.find(cSetColorCmd) == 0) { // starts with
+    } else if (cmd.find(cGetVersion) == 0) {
+        PrintResponse(std::string(DeviceString) + " " + VersionString);
+    } else if (cmd.find(cSetColorCmd) == 0) {
         int rgbw[4];
         int start = cSetColorCmd.size();
         for (size_t i = 0; i < 4; i++) {
-            auto p = cmd.find(",", start);
+            std::size_t p = cmd.find(",", start);
             if (p != std::string::npos) {
                 rgbw[i] = std::stoi(cmd.substr(start, p - start), 0, 16);
                 start = p + 1;
@@ -141,28 +138,49 @@ void Shell::ProcessString(std::string &cmd) {
         _stream.println("Setting Color");
         Color c(rgbw[0], rgbw[1], rgbw[2], rgbw[3]);
         _fpColorCb(c);
-    } else if (cmd.find(cSetEffectCmd) == 0) { // starts with
-        auto effect = cmd.substr(cSetEffectCmd.size());
-        if (effect == "Idle")
-            _fpSceneCb(DeviceState::Idle);
-        else if (effect == "Processing") 
-            _fpSceneCb(DeviceState::Processing);
-        else if (effect == "Good") 
-            _fpSceneCb(DeviceState::Good);
-        else if (effect == "Bad") 
-            _fpSceneCb(DeviceState::Bad);
-        else _stream.println("Unknown Effect");
-    } else if (cmd.find(cConfigActionCmd) == 0) { // starts with
+    } else if (cmd.find(cSetEffectCmd) == 0) {
+        std::string par = cmd.substr(cSetEffectCmd.size());
+        if (SceneNumToStateMap.count(par)) {
+            _fpSceneCb(SceneNumToStateMap.at(par));
+        } else
+            _stream.println("Unknown Effect");
+    } else if (cmd.find(cConfigActionCmd) == 0) {
         _stream.println("Setting Action");
-    } else if (cmd == cSaveCmd) { // starts with
-        _stream.println("Saving ...");
-    } else if (cmd == cGetStatusCmd) { // starts with
+    } else if (cmd == cGetStatusCmd) {
         _stream.println("State: ...");
-    } else if (cmd == cGetConfigCmd) {
-        _stream.println("Config: ...");
     } else {
         _stream.println("Unknown command. See help with '?' ...");
     }
+}
+
+void Shell::SendButtonEvent(Button::State state) {
+    switch (state) {
+    case Button::State::Pressed:
+        PrintEvent("Btn:L->H");
+        break;
+
+    case Button::State::Released:
+        PrintEvent("Btn:H->L");
+        break;
+
+    default:
+        break;
+    }
+}
+
+void Shell::PrintEvent(std::string msg) {
+    _stream.print(":");
+    _stream.println(msg.c_str());
+}
+
+void Shell::PrintError(std::string msg) {
+    _stream.print("!");
+    _stream.println(msg.c_str());
+}
+
+void Shell::PrintResponse(std::string msg) {
+    _stream.print("<");
+    _stream.println(msg.c_str());
 }
 
 // ValidCommands_t ServiceCommands[] = {

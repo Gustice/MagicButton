@@ -304,7 +304,7 @@ template <unsigned LedCnt, unsigned ParCnt> class ProcessorSeries {
      */
     void crossFadeColors(uint8_t k) {
 
-        auto temp = _pColorOld * k;
+        Color temp = _pColorOld * k;
         for (size_t i = 0; i < MachineCount; i++) {
             _pColor[i] = _pColor[i] * (0xFF - k);
             _pColor[i] = _pColor[i] + temp;

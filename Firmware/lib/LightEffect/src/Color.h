@@ -85,7 +85,7 @@ class Color {
      * @return Scaled Color
      */
     Color operator*(uint8_t k) const {
-        auto c = *this;
+        Color c = *this;
 
         c._color.red = (int)_color.red * k / 0xFF;
         c._color.green = (int)_color.green * k / 0xFF;
@@ -103,7 +103,7 @@ class Color {
      * @return Overlayed Color
      */
     Color operator+(const Color c2) const {
-        auto c = *this;
+        Color c = *this;
 
         c._color.red += c2._color.red;
         c._color.green += c2._color.green;

@@ -52,6 +52,19 @@
         "*.rmd": "markdown",
         "*.tcc": "cpp",
         "optional": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "array": "cpp",
+        "string_view": "cpp",
+        "atomic": "cpp",
+        "bit": "cpp",
+        "cctype": "cpp",
+        "clocale": "cpp",
+        "cstdarg": "cpp",
+        "cwctype": "cpp",
+        "deque": "cpp",
+        "iterator": "cpp",
+        "memory_resource": "cpp",
+        "numeric": "cpp",
+        "cinttypes": "cpp"
     }
 }

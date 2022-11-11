@@ -1,113 +1,106 @@
 #include "Button.h"
 #include "CountDown.h"
-#include <Adafruit_NeoPixel.h>
-#include <Arduino.h>
+#include "DeviceScenes.h"
+#include "DeviceState.h"
 #include "Processor.h"
 #include "Shell.h"
 #include "TimerInterrupt_Generic.h"
-#include "DeviceState.h"
-#include "DeviceScenes.h"
+#include <Adafruit_NeoPixel.h>
+#include <Arduino.h>
 
 using namespace Effect;
 
-#define PIXEL_COUNT 16
-int LedOutputPin = PB8;
-int ButtonPin = PB9;
-int DebugPin = PB12;
-const unsigned HwTimerInterval_us(1 * 1000);
+/* Constants */
+constexpr int LedOutputPin = PB8;
+constexpr int ButtonPin = PB9;
+constexpr int DebugPin = PB12;
+constexpr unsigned HwTimerInterval_us(1 * 1000);
+constexpr unsigned PixelCount = 16;
 
+/* Forward declarations */
 int readButtonPin(void);
-STM32Timer ITimer(TIM1);
-static Button Btn(readButtonPin, HIGH);
-static CntDown ledTick(40 /* ms*/);
-static CntDown buttonTick(20 /* ms*/);
+void SetColor(const Color &c);
+void SetScene(VisualizationSate s);
+void setDebugPin(int value);
+void cyclicInterruptRoutine();
 
-unsigned PixelCount = PIXEL_COUNT;
-MultiProcessor<PIXEL_COUNT> pixelRing(8);
-
-DeviceState state = DeviceState::Startup;
+STM32Timer _iTimer(TIM1);
+static Button _button(readButtonPin, HIGH);
+static CountDown _ledTick(40 /* ms*/);
+static CountDown _buttonTick(20 /* ms*/);
+MultiProcessor<PixelCount> _pixelRing(8);
 Adafruit_NeoPixel _strip(PixelCount, LedOutputPin, NEO_GRBW + NEO_KHZ800);
-
-void SetColor(const Color &c) { pixelRing.SetEffect(macIdleAll, &c); }
-void SetScene(DeviceState s) {
-    const Scene & scn = Scenes.at(s);
-    pixelRing.SetEffect(scn.Effect, &scn.color);
-}
-void cyclicInterruptRoutine() {
-    ledTick.Tick();
-    buttonTick.Tick();
-}
-
-Shell shell(SerialUSB, SetColor, SetScene);
+DeviceState _device{
+    .Visualization = VisualizationSate::Startup,
+    .ButtonState = Button::State::Idle,
+};
+Shell _shell(SerialUSB, _device, SetColor, SetScene);
 
 void setup() {
     pinMode(PC13, OUTPUT);
     pinMode(LedOutputPin, OUTPUT);
 
     SerialUSB.begin();
-    SerialUSB.println("Setup is finished");
+    _shell.PrintEvent("Setup is finished");
 
-    if (!ITimer.attachInterruptInterval(HwTimerInterval_us, cyclicInterruptRoutine))
-        SerialUSB.println(F("Can't set ITimer. Select another freq. or timer"));
+    if (!_iTimer.attachInterruptInterval(HwTimerInterval_us, cyclicInterruptRoutine))
+        _shell.PrintError("Can't set ITimer. Select another freq. or timer");
 
-    pixelRing.SetEffect(macStartIdleAll, &CWhite);
+    _pixelRing.SetEffect(macStartIdleAll, &CWhite);
 }
-
-int readButtonPin(void) { return digitalRead(ButtonPin); }
-
-void setDebugPin(int value) { digitalWrite(DebugPin, value); }
 
 void loop() {
     static const Color *pColorOverride = nullptr;
     if (SerialUSB == true) {
-        if (state == DeviceState::Startup) {
-            shell.PrintWelcome();
-            state = DeviceState::Connected;
-            const Scene & scn = Scenes.at(state);
-            pixelRing.SetEffect(scn.Effect, &scn.color);
+        if (_device.Visualization == VisualizationSate::Startup) {
+            _shell.PrintWelcome();
+            _device.Visualization = VisualizationSate::Connected;
+            const Scene &scn = Scenes.at(_device.Visualization);
+            _pixelRing.SetEffect(scn.Effect, &scn.color);
         }
     } else {
-        // if (state != DeviceState::Startup) {
-            state = DeviceState::Startup;
-            pixelRing.SetEffect(macStartIdleAll, &CWhite);
+        // if (state != DeviceState::Startup) { // @todo USB not working if this is uncommented
+        _device.Visualization = VisualizationSate::Startup;
+        _pixelRing.SetEffect(macStartIdleAll, &CWhite);
         // }
     }
 
     if (SerialUSB) {
         if (SerialUSB.available()) {
-            auto c = SerialUSB.read();
+            int c = SerialUSB.read();
             SerialUSB.print((char)c);
-            shell.ConsumeSymbol(c);
+            _shell.ConsumeSymbol(c);
         }
     }
 
-    if (buttonTick.GetVolatileFlag()) {
-        switch (Btn.Eval()) {
+    if (_buttonTick.GetVolatileFlag()) {
+        switch (_button.Eval()) {
         case Button::State::Pressed:
-            SerialUSB.println("Btn:L->H");
+            _shell.SendButtonEvent(Button::State::Pressed);
             pColorOverride = &CRed;
             break;
 
         case Button::State::Released:
-            SerialUSB.println("Btn:H->L");
+            _shell.SendButtonEvent(Button::State::Released);
             pColorOverride = nullptr;
             break;
 
-        default: break;
+        default:
+            break;
         }
     }
 
-    if (ledTick.GetVolatileFlag()) {
+    if (_ledTick.GetVolatileFlag()) {
         setDebugPin(HIGH);
-        auto colors = pixelRing.Tick();
+        const Color * colors = _pixelRing.Tick();
         if (pColorOverride != nullptr) {
-            auto c = pColorOverride->GetColor();
+            Color::Rgbw_t c = pColorOverride->GetColor();
             for (size_t i = 0; i < PixelCount; i++) {
                 _strip.setPixelColor(i, c.red >> 2, c.green >> 2, c.blue >> 2, 0);
             }
         } else {
             for (size_t i = 0; i < PixelCount; i++) {
-                auto c = colors[i].GetColor();
+                Color::Rgbw_t c = colors[i].GetColor();
                 _strip.setPixelColor(i, c.red >> 2, c.green >> 2, c.blue >> 2, 0);
             }
         }
@@ -115,3 +108,15 @@ void loop() {
         setDebugPin(LOW);
     }
 }
+
+void SetColor(const Color &c) { _pixelRing.SetEffect(macIdleAll, &c); }
+void SetScene(VisualizationSate s) {
+    const Scene &scn = Scenes.at(s);
+    _pixelRing.SetEffect(scn.Effect, &scn.color);
+}
+void cyclicInterruptRoutine() {
+    _ledTick.Tick();
+    _buttonTick.Tick();
+}
+int readButtonPin(void) { return digitalRead(ButtonPin); }
+void setDebugPin(int value) { digitalWrite(DebugPin, value); }

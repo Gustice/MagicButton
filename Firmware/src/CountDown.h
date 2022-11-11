@@ -1,8 +1,8 @@
 #pragma once
 
-class CntDown {
+class CountDown {
   public:
-    CntDown(unsigned max) : _max(max) {}
+    CountDown(unsigned max) : _max(max) {}
 
     void Tick() {
         _cnt++;

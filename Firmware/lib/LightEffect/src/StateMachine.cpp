@@ -114,7 +114,7 @@ void StateMachine::UpdateWave(StepProcessValues_t &pcsParam) {
 }
 
 void StateMachine::UpdateRevWave(StepProcessValues_t &pcsParam) {
-    auto lastIndex = pcsParam.pWave->Length - 1;
+    unsigned lastIndex = pcsParam.pWave->Length - 1;
 
     Color temp = pcsParam.pCurentColor;
     temp = temp * ((float)(pcsParam.pWave->pWave[lastIndex - pcsParam.waveIdx]) / 0xFF *
