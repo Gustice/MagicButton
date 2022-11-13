@@ -2,6 +2,7 @@
 using EvalApplication.Ux.Types;
 using Prism.Commands;
 using Prism.Mvvm;
+using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 
@@ -28,7 +29,6 @@ namespace EvalApplication.Ux.ViewModels
             set { _workSiumlation = value; }
         }
 
-
         private ComButton _activeButton;
         public ComButton ActiveButton
         {
@@ -37,14 +37,14 @@ namespace EvalApplication.Ux.ViewModels
         }
 
         public ObservableCollection<ComButton> AvailableButtons { get; } = new ObservableCollection<ComButton>();
-
-        private ComButton _magicButton;
+        public ComButton.Color SetColor { get; set; }
 
         public DeviceControlViewModel()
         {
 
         }
 
+        private ComButton _magicButton;
         public DeviceControlViewModel(ComButton magicButton)
         {
             _magicButton = magicButton;
@@ -64,15 +64,32 @@ namespace EvalApplication.Ux.ViewModels
             AvailableButtons.AddRange(buttons);
         }
 
-        private void OnConnect()
+        private async void OnConnect()
         {
             Debug.WriteLine("-- OnConnect");
-            Connection = ConnectionState.Connected;
+            try
+            {
+                await ActiveButton.Connect(UpdateButtonState, UpdateStatusMessage);
+                Connection = ConnectionState.Connected;
+            }
+            catch (System.Exception)
+            {
+                Connection = ConnectionState.FailedToConnect;
+            }
         }
 
-        private void OnSetState(string state)
+        private async void OnSetState(string state)
         {
             Debug.WriteLine($"-- OnSetState - {state}");
+            try
+            {
+                var s = (ComButton.VisualizationSate)Enum.Parse(typeof(ComButton.VisualizationSate), state);
+                await ActiveButton.SetVisualizationState(s);
+            }
+            catch (Exception)
+            {
+                Debug.WriteLine($"! Failed to set state");
+            }
         }
 
         private void OnSetColor()
@@ -80,10 +97,18 @@ namespace EvalApplication.Ux.ViewModels
             Debug.WriteLine("-- OnSetColor");
         }
 
-
         private void OnReadState()
         {
             Debug.WriteLine("-- OnReadState");
+        }
+
+        private void UpdateButtonState(string state) 
+        {
+            
+        }
+        private void UpdateStatusMessage(string state)
+        {
+
         }
 
     }
