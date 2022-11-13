@@ -57,6 +57,7 @@
     </ApplicationDefinition>
     <Compile Include="Definitions\RegionNames.cs" />
     <Compile Include="Ux\Converter\EnumValueToColorConverter.cs" />
+    <Compile Include="Ux\Converter\HexByteConverter.cs" />
     <Compile Include="Ux\Types\Activation.cs" />
     <Compile Include="Ux\Types\ConnectionState.cs" />
     <Compile Include="Ux\ViewModels\DeviceControlViewModel.cs" />

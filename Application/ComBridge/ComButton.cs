@@ -33,15 +33,15 @@ namespace ComBridge
 
         public class Color
         {
-            byte Red;
-            byte Green;
-            byte Blue;
-            byte White;
+            public byte Red {get; set;}
+            public byte Green {get; set;}
+            public byte Blue {get; set;}
+            public byte White { get; set; }
         }
 
         public string Com { get; set; }
         public string Device { get; set; }
-        public Action<string> _incommingMessageCb { get; private set; }
+        public Action<string> _incomingMessageCb { get; private set; }
         public Action<string> _buttonEventCb { get; private set; }
 
         SerialPort _port = null;
@@ -69,12 +69,28 @@ namespace ComBridge
             _port.DataReceived += OnDataReceived;
 
             _buttonEventCb = buttonEvent;
-            _incommingMessageCb = incomingMessage;
+            _incomingMessageCb = incomingMessage;
         }
 
         public async Task SetVisualizationState(VisualizationSate state)
         {
             var cmd = $"{AsciiFrames.SetEffectCmd}{AsciiFrames.StateToEffectMap[state]}\n";
+            await WriteAsync(Encoding.ASCII.GetBytes(cmd));
+
+            return;
+        }
+
+        public async Task SetColor(Color color)
+        {
+            var cmd = $"{AsciiFrames.SetColorCmd}{color.Red:X2},{color.Green:X2},{color.Blue:X2},{color.White:X2}\n";
+            await WriteAsync(Encoding.ASCII.GetBytes(cmd));
+
+            return;
+        }
+
+        public async Task ReadStates()
+        {
+            var cmd = $"{AsciiFrames.GetStatusCmd}\n";
             await WriteAsync(Encoding.ASCII.GetBytes(cmd));
 
             return;
@@ -87,8 +103,15 @@ namespace ComBridge
                 _buttonEventCb(message.Substring(":Btn:".Length) /*new ButtonEvent(ButtonEvent.EventType.Event, stream)*/);
                 return;
             }
+            if (message.StartsWith("<State:"))
+            {
+                var sStr = message.Substring("<State:".Length);
+                var fields = sStr.Split(';');
+                _buttonEventCb(fields[0]);
+                _incomingMessageCb(message);
+            }
 
-            _incommingMessageCb(message /*new ButtonEvent(ButtonEvent.EventType.Response, stream)*/);
+            _incomingMessageCb(message /*new ButtonEvent(ButtonEvent.EventType.Response, stream)*/);
         }
 
         async Task WriteAsync(byte[] data)
@@ -100,12 +123,11 @@ namespace ComBridge
             await _port.BaseStream.WriteAsync(data, 0, data.Length);
         }
 
-
         StringBuilder sBuffer = new StringBuilder();
         private void OnDataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            var input = _port.ReadExisting();
-            Console.WriteLine(input);
+            //var input = _port.ReadExisting();
+            //Console.WriteLine(input);
 
             while (_port.BytesToRead > 0)
             {
@@ -150,7 +172,6 @@ namespace ComBridge
             }
             return buttons;
         }
-
 
         public override string ToString()
         {

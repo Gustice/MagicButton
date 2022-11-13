@@ -3,19 +3,25 @@ using EvalApplication.Ux.Types;
 using Prism.Commands;
 using Prism.Mvvm;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace EvalApplication.Ux.ViewModels
 {
     public class DeviceControlViewModel : BindableBase
     {
+        public List<double> WorkLoads { get; set; } = new List<double>() { 2, 5, 10, 15 };
+        public double WorkLoad { get; set; } = 5;
+
         public DelegateCommandBase ConnectCommand { get; }
         public DelegateCommand<string> SetStateCommand { get; }
         public DelegateCommandBase SetColorCommand { get; }
         public DelegateCommandBase ReadStateCommand { get; }
         public DelegateCommandBase SetdropDownCommand { get; }
-        
+        public DelegateCommandBase SetWorkSimulationCommand { get; }
+
         private ConnectionState _connection;
         private Activation _workSiumlation;
         public ConnectionState Connection
@@ -25,8 +31,8 @@ namespace EvalApplication.Ux.ViewModels
         }
         public Activation WorkSiumlation
         {
-            get { return _workSiumlation; }
-            set { _workSiumlation = value; }
+            get => _workSiumlation;
+            set => SetProperty(ref _workSiumlation, value);
         }
 
         private ComButton _activeButton;
@@ -36,8 +42,29 @@ namespace EvalApplication.Ux.ViewModels
             set => SetProperty(ref _activeButton, value);
         }
 
+        private string _btnState;
+        public string BtnState
+        {
+            get => _btnState;
+            set => SetProperty(ref _btnState, value);
+        }
+
+        private string _state;
+        public string State
+        {
+            get => _state;
+            set => SetProperty(ref _state, value);
+        }
+        private double _progressPercent = 0.5;
+        public double ProgressPercent
+        {
+            get => _progressPercent;
+            set => SetProperty(ref _progressPercent, Math.Min(100, value));
+        }
+
+
         public ObservableCollection<ComButton> AvailableButtons { get; } = new ObservableCollection<ComButton>();
-        public ComButton.Color SetColor { get; set; }
+        public ComButton.Color SetColor { get; set; } = new ComButton.Color();
 
         public DeviceControlViewModel()
         {
@@ -54,6 +81,7 @@ namespace EvalApplication.Ux.ViewModels
             SetColorCommand = new DelegateCommand(OnSetColor);
             ReadStateCommand = new DelegateCommand(OnReadState);
             SetdropDownCommand = new DelegateCommand(OnSetdropDown);
+            SetWorkSimulationCommand = new DelegateCommand(OnSetWorkSimulation);
         }
 
         private void OnSetdropDown()
@@ -92,24 +120,63 @@ namespace EvalApplication.Ux.ViewModels
             }
         }
 
-        private void OnSetColor()
+        private async void OnSetColor()
         {
             Debug.WriteLine("-- OnSetColor");
+            await ActiveButton.SetColor(SetColor);
         }
 
-        private void OnReadState()
+        private async void OnReadState()
         {
             Debug.WriteLine("-- OnReadState");
+            await ActiveButton.ReadStates();
         }
 
-        private void UpdateButtonState(string state) 
+        private async void UpdateButtonState(string state)
         {
-            
+            try
+            {
+                BtnState = state;
+                if (WorkSiumlation != Activation.Active)
+                    return;
+                if (state != "L->H")
+                    return;
+
+                await ActiveButton.SetVisualizationState(ComButton.VisualizationSate.Busy);
+                await SimulateTask(WorkLoad * 1000);
+                await ActiveButton.SetVisualizationState(ComButton.VisualizationSate.Good);
+                await Task.Delay(5000);
+                await ActiveButton.SetVisualizationState(ComButton.VisualizationSate.Idle);
+            }
+            catch (Exception)
+            {
+
+            }
+
         }
         private void UpdateStatusMessage(string state)
         {
-
+            State = state;
+        }
+        private void OnSetWorkSimulation()
+        {
+            if (WorkSiumlation == Activation.Passiv)
+                WorkSiumlation = Activation.Active;
+            else
+                WorkSiumlation = Activation.Passiv;
         }
 
+        private async Task SimulateTask(double time)
+        {
+            double progress = 0;
+            while (progress < time)
+            {
+                await Task.Delay(100);
+                progress += 100;
+                ProgressPercent = 100.0 * (progress / time);
+            }
+            ProgressPercent = 0;
+            return;
+        }
     }
 }
