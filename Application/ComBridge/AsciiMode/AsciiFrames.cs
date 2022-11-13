@@ -9,6 +9,7 @@ namespace ComBridge.AsciiMode
         public const string SetColorCmd = "Set Color:";
         public const string SetEffectCmd = "Set Effect:";
         public const string GetStatusCmd = "Get Status:";
+        public const string PromptInit = "MB ";
 
         public readonly static  Dictionary<ComButton.VisualizationSate, string> StateToEffectMap = new Dictionary<ComButton.VisualizationSate, string> {
             {ComButton.VisualizationSate.Startup, "Startup"}, 

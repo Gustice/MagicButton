@@ -166,6 +166,10 @@ namespace ComBridge
                     continue;
                 }
 
+                if (sBuffer.Length == AsciiFrames.PromptInit.Length)
+                    if (sBuffer.ToString() == AsciiFrames.PromptInit)
+                        sBuffer.Clear(); // Clear Shell Prompt
+                
                 sBuffer.Append(c);
             }
         }

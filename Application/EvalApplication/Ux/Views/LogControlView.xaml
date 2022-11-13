@@ -39,14 +39,16 @@
                     <DataTemplate>
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="40" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0"
                                        FontWeight="Bold"
+                                       FontSize="9"
                                        Text="{Binding TypeCode}"
                                        Foreground="{Binding Type, Converter={StaticResource EnumValueToColor}}" />
                             <TextBlock Grid.Column="1"
+                                       FontSize="9"
                                        Text="{Binding Message}"
                                        Foreground="{Binding Type, Converter={StaticResource EnumValueToColor}}" />
                         </Grid>
