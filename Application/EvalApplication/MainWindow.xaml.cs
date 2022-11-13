@@ -1,7 +1,6 @@
 ﻿using ComBridge;
 using EvalApplication.Ux.ViewModels;
 using System.Windows;
-using System.Windows.Controls;
 
 namespace EvalApplication
 {
@@ -10,7 +9,6 @@ namespace EvalApplication
     /// </summary>
     public partial class MainWindow : Window
     {
-        public ComButton MagicButton { get; } = new ComButton();
         public DeviceControlViewModel DeviceControl { get; } 
         public LogControlViewModel LogControl { get; } 
 
@@ -18,8 +16,8 @@ namespace EvalApplication
         {
             InitializeComponent();
 
-            DeviceControl = new DeviceControlViewModel(MagicButton);
-            LogControl = new LogControlViewModel();
+            LogControl = new LogControlViewModel(ComButton.TransferMode.Ascii);
+            DeviceControl = new DeviceControlViewModel(LogControl);
 
             DataContext = this;
         }

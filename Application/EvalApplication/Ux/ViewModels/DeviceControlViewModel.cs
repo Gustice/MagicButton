@@ -1,4 +1,5 @@
 ﻿using ComBridge;
+using EvalApplication.Model;
 using EvalApplication.Ux.Types;
 using Prism.Commands;
 using Prism.Mvvm;
@@ -7,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace EvalApplication.Ux.ViewModels
 {
@@ -71,10 +73,11 @@ namespace EvalApplication.Ux.ViewModels
 
         }
 
-        private ComButton _magicButton;
-        public DeviceControlViewModel(ComButton magicButton)
+        private LogControlViewModel _logControl;
+
+        public DeviceControlViewModel(LogControlViewModel logControl)
         {
-            _magicButton = magicButton;
+            _logControl = logControl;
 
             ConnectCommand = new DelegateCommand(OnConnect);
             SetStateCommand = new DelegateCommand<string>(OnSetState);
@@ -98,6 +101,7 @@ namespace EvalApplication.Ux.ViewModels
             try
             {
                 await ActiveButton.Connect(UpdateButtonState, UpdateStatusMessage);
+                ActiveButton.AppendLogger(LogTransferRaw);
                 Connection = ConnectionState.Connected;
             }
             catch (System.Exception)
@@ -177,6 +181,12 @@ namespace EvalApplication.Ux.ViewModels
             }
             ProgressPercent = 0;
             return;
+        }
+
+        private void LogTransferRaw(ComButton.Dircetion dir, string message)
+        {
+            Dispatcher.CurrentDispatcher.Invoke (() => 
+            _logControl.AddLog(message) );
         }
     }
 }

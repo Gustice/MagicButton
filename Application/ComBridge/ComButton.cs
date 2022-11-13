@@ -23,7 +23,7 @@ namespace ComBridge
             NumberStates
         };
 
-        internal enum State
+        public enum State
         {
             Idle,
             Pressed,
@@ -31,11 +31,23 @@ namespace ComBridge
             Released,
         }
 
+        public enum TransferMode
+        {
+            Ascii,
+            Binary,
+        }
+
+        public enum Dircetion
+        {
+            ToDevice,
+            FromDevice
+        }
+
         public class Color
         {
-            public byte Red {get; set;}
-            public byte Green {get; set;}
-            public byte Blue {get; set;}
+            public byte Red { get; set; }
+            public byte Green { get; set; }
+            public byte Blue { get; set; }
             public byte White { get; set; }
         }
 
@@ -45,6 +57,9 @@ namespace ComBridge
         public Action<string> _buttonEventCb { get; private set; }
 
         SerialPort _port = null;
+        StringBuilder sBuffer = new StringBuilder();
+        private Action<Dircetion, string> _logTransfer;
+
         public bool IsActive => _port != null && _port.IsOpen;
 
         public async Task Connect(Action<string> buttonEvent, Action<string> incomingMessage)
@@ -72,26 +87,27 @@ namespace ComBridge
             _incomingMessageCb = incomingMessage;
         }
 
+        public void AppendLogger(Action<Dircetion, string> logTransfer) => _logTransfer = logTransfer;
+
         public async Task SetVisualizationState(VisualizationSate state)
         {
-            var cmd = $"{AsciiFrames.SetEffectCmd}{AsciiFrames.StateToEffectMap[state]}\n";
-            await WriteAsync(Encoding.ASCII.GetBytes(cmd));
-
+            var cmd = $"{AsciiFrames.SetEffectCmd}{AsciiFrames.StateToEffectMap[state]}";
+            await SendAsciiCommand(cmd);
             return;
         }
 
         public async Task SetColor(Color color)
         {
-            var cmd = $"{AsciiFrames.SetColorCmd}{color.Red:X2},{color.Green:X2},{color.Blue:X2},{color.White:X2}\n";
-            await WriteAsync(Encoding.ASCII.GetBytes(cmd));
+            var cmd = $"{AsciiFrames.SetColorCmd}{color.Red:X2},{color.Green:X2},{color.Blue:X2},{color.White:X2}";
+            await SendAsciiCommand(cmd);
 
             return;
         }
 
         public async Task ReadStates()
         {
-            var cmd = $"{AsciiFrames.GetStatusCmd}\n";
-            await WriteAsync(Encoding.ASCII.GetBytes(cmd));
+            var cmd = $"{AsciiFrames.GetStatusCmd}";
+            await SendAsciiCommand(cmd);
 
             return;
         }
@@ -114,6 +130,13 @@ namespace ComBridge
             _incomingMessageCb(message /*new ButtonEvent(ButtonEvent.EventType.Response, stream)*/);
         }
 
+        async Task SendAsciiCommand(string command)
+        {
+            await WriteAsync(Encoding.ASCII.GetBytes(command + "\n"));
+            _logTransfer?.Invoke(Dircetion.ToDevice, ">"+command);
+            return;
+        }
+
         async Task WriteAsync(byte[] data)
         {
             if (!IsActive)
@@ -123,7 +146,6 @@ namespace ComBridge
             await _port.BaseStream.WriteAsync(data, 0, data.Length);
         }
 
-        StringBuilder sBuffer = new StringBuilder();
         private void OnDataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             //var input = _port.ReadExisting();
@@ -137,7 +159,9 @@ namespace ComBridge
 
                 if (c == '\n')
                 {
-                    ProcessIncomingMessag(sBuffer.ToString());
+                    var s = sBuffer.ToString();
+                    ProcessIncomingMessag(s);
+                    _logTransfer?.Invoke(Dircetion.FromDevice, s);
                     sBuffer = new StringBuilder();
                     continue;
                 }

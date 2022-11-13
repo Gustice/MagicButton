@@ -3,10 +3,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:EvalApplication"
         xmlns:views="clr-namespace:EvalApplication.Ux.Views"
         mc:Ignorable="d"
         Title="MainWindow"
-        d:DataContext="{d:DesignData MainWindow}"
+        d:DataContext="{d:DesignData local:MainWindow}"
         Height="350"
         Width="500">
     <Window.Resources>

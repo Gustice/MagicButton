@@ -56,6 +56,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Definitions\RegionNames.cs" />
+    <Compile Include="Model\LogMessage.cs" />
+    <Compile Include="Model\LogType.cs" />
     <Compile Include="Ux\Converter\EnumValueToColorConverter.cs" />
     <Compile Include="Ux\Converter\HexByteConverter.cs" />
     <Compile Include="Ux\Types\Activation.cs" />

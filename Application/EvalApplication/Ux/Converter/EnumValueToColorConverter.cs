@@ -10,8 +10,8 @@ namespace EvalApplication.Ux.Converter
     public class EnumValueToColorConverter : IValueConverter
     {
         Dictionary<Type, List<Color>> _knownColors = new Dictionary<Type, List<Color>>() {
-            // Hint, Info, Warning, Error,
-            //{typeof(FeedbackState), new List<Color>{ Colors.DarkGray, Colors.LightBlue, Colors.LightSalmon, Colors.IndianRed} },
+            // Message, Request, Response, Error, Event
+            {typeof(Model.LogType), new List<Color>{ Colors.DarkGreen, Colors.Black, Colors.DarkBlue, Colors.DarkRed, Colors.DarkViolet} },
             // Initial, Connected, Disconnected, FailedToConnect,
             {typeof(ConnectionState), new List<Color>{ Colors.DarkGray, Colors.LightGreen, Colors.LightBlue, Colors.LightSalmon} },
             // Passive, Acitve
@@ -19,6 +19,8 @@ namespace EvalApplication.Ux.Converter
             };
 
         readonly SolidColorBrush errorBrush = new SolidColorBrush(Colors.Red);
+
+        public List<Color> OverwriteColor { get; set; }
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
