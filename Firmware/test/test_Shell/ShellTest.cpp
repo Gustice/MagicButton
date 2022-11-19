@@ -188,6 +188,12 @@ void RepeatTestsWithoutEcho(void) {
   TEST_ASSERT_EQUAL(0, serial.OutQueue.size());
 }
 
+void SendButtonEvent(void) {
+  _shell.SendButtonEvent(Button::State::Pressed);
+  TEST_ASSERT_EQUAL_STRING("$ >:Btn:L->H", serial.ReadOutputBuffer().c_str());
+  TEST_ASSERT_EQUAL(0, serial.OutQueue.size()); 
+}
+
 
 /**
  * @brief Test-Setup
@@ -210,6 +216,7 @@ void loop() {
     RUN_TEST(WriteColorOutput);
     RUN_TEST(WriteEffectOutput);
     RUN_TEST(ReadButtonStatus);
+    RUN_TEST(SendButtonEvent);
 
     RUN_TEST(ReadVersionSilently);
     RUN_TEST(ReadButtonSilently);

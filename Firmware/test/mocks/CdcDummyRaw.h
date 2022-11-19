@@ -4,20 +4,34 @@
 #include <queue>
 #include <vector>
 
-class CdcDummy : public Stream {
+class CdcDummyRaw : public Stream {
   public:
-    std::string OutBuffer;
-    std::queue<std::string> OutQueue;
-    std::string ReadOutputBuffer(void) {
+    uint8_t RawBuffer[32];
+    uint8_t RawBufferLength;
+
+    std::vector<uint8_t> OutBuffer;
+    std::queue<std::vector<uint8_t>> OutQueue;
+    uint8_t *ReadOutputBuffer(void) {
         if (OutQueue.size() != 0) {
             auto msg = OutQueue.front();
             OutQueue.pop();
-            return msg;
+            RawBufferLength = msg.size();
+
+            for (size_t i = 0; i < RawBufferLength; i++) {
+                RawBuffer[i] = msg[i];
+            }
+
+            return RawBuffer;
         }
 
-        std::string msg(OutBuffer);
-        OutBuffer = "";
-        return msg;
+        auto msg(OutBuffer);
+        OutBuffer.clear();
+        RawBufferLength = msg.size();
+        for (size_t i = 0; i < RawBufferLength; i++) {
+            RawBuffer[i] = msg[i];
+        }
+
+        return RawBuffer;
     }
 
     void begin(void) {}
@@ -30,16 +44,17 @@ class CdcDummy : public Stream {
     }
     virtual void flush(void) override{};
 
-    virtual size_t write(uint8_t c) override {
-        auto s = (char)c;
-        if (s == '\r')
-            return 1;
+    unsigned _length = 0;
+    const unsigned HeaderLen = 3;
 
-        if (s == '\n') {
+    virtual size_t write(uint8_t c) override {
+        OutBuffer.push_back(c);
+        if (OutBuffer.size() == HeaderLen)
+            _length = c;
+
+        if (OutBuffer.size() == (HeaderLen + _length)) {
             OutQueue.push(OutBuffer);
-            OutBuffer = "";
-        } else {
-            OutBuffer.push_back((char)c);
+            OutBuffer.clear();
         }
         return 1;
     }

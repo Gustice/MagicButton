@@ -227,7 +227,7 @@ void Shell::ProcessRaw(CmdHeader_t *header, uint8_t *payload, unsigned length) {
     } break;
     case RawCommands::GetStatus: {
         uint8_t pay[2]{(uint8_t)_device.ButtonState, (uint8_t)_device.Visualization};
-        SendRawResponse(cmd, EmptyMsgFlag, pay, sizeof(pay));
+        SendRawResponse(cmd, DoneMsgFlag, pay, sizeof(pay));
     } break;
     default:
         SendRawResponse(UndefinedCommand, ErrorMsgFlag, (const uint8_t *)"EX", 2);
