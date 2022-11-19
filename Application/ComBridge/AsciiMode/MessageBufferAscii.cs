@@ -12,6 +12,7 @@ namespace ComBridge.AsciiMode
             Action<Dircetion, string> logTransfer)
             : base(port, buttonEvent, incomingMessage, logTransfer)
         {
+            port.DtrEnable = true;
         }
 
         StringBuilder _buffer = new StringBuilder();

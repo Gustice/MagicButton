@@ -1,5 +1,6 @@
 ﻿using ComBridge;
 using EvalApplication.Ux.ViewModels;
+using System;
 using System.Windows;
 
 namespace EvalApplication
@@ -16,10 +17,15 @@ namespace EvalApplication
         {
             InitializeComponent();
 
-            LogControl = new LogControlViewModel(ComButton.TransferMode.Ascii);
+            LogControl = new LogControlViewModel(newMode);
             DeviceControl = new DeviceControlViewModel(LogControl);
 
             DataContext = this;
+        }
+
+        private void newMode(ComButton.TransferMode mode)
+        {
+            DeviceControl.TransferMode = mode;
         }
     }
 }

@@ -11,6 +11,7 @@ namespace ComBridge.BinaryMode
         {
             port.BaseStream.Write(RawFrames.EscapeSequce, 0, RawFrames.EscapeSequce.Length);
             // Device is now in binary mode
+            port.DtrEnable = true;
         }
 
         public override async Task ReadStates()

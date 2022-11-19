@@ -3,7 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:local="clr-namespace:EvalApplication.Ux.Views"
              xmlns:viewmodels="clr-namespace:EvalApplication.Ux.ViewModels"
              xmlns:converter="clr-namespace:EvalApplication.Ux.Converter"
              mc:Ignorable="d"
@@ -12,6 +11,7 @@
              d:DesignWidth="200">
     <UserControl.Resources>
         <converter:EnumValueToColorConverter x:Key="EnumValueToColor" />
+        <converter:BoolToColorConverter x:Key="BoolToColor" IfFalse="LightGray" IfTrue="YellowGreen" />
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -26,9 +26,11 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <Button Content="Ascii / Hex" />
-            <TextBox Text="Rts-Line"
-                     Grid.Column="1" />
+            <Button Content="Hex"
+                    Command="{Binding ToHexModeCommand}"
+                    Background="{Binding HexModeIsActive, 
+                        Converter={StaticResource BoolToColor}}"
+                    ToolTip="Will latch to hex mode" />
             <Button Content="Clear"
                     Grid.Column="2" />
         </Grid>

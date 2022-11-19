@@ -63,6 +63,9 @@ namespace ComBridge
 
         public async Task Connect(Action<string> buttonEvent, Action<string> incomingMessage, ComButton.TransferMode mode)
         {
+            _buttonEventCb = buttonEvent;
+            _incomingMessageCb = incomingMessage;
+
             _port = new SerialPort();
 
             _port.PortName = Com;
@@ -76,31 +79,26 @@ namespace ComBridge
             _mode = mode;
 
             _port.Open();
-            StartupSequence(_port, _mode);
+            StartupSequence(_port, _mode, buttonEvent, incomingMessage);
 
             await Task.Delay(1);
 
             _port.DiscardInBuffer();
             _port.DiscardOutBuffer();
-
-            _buttonEventCb = buttonEvent;
-            _incomingMessageCb = incomingMessage;
         }
 
-        private void StartupSequence(SerialPort port, TransferMode mode)
+        private void StartupSequence(SerialPort port, TransferMode mode, Action<string> buttonEvent, Action<string> incomingMessage)
         {
             switch (mode)
             {
                 case TransferMode.Ascii:
-                    _msgBuffer = new AsciiMode.MessageBufferAscii(port, _buttonEventCb, _incomingMessageCb, LogStream);
+                    _msgBuffer = new AsciiMode.MessageBufferAscii(port, buttonEvent, incomingMessage, LogStream);
                     _msgGenerator = new AsciiMode.MessageGeneratorAscii(port, LogStream);
                     break;
 
                 case TransferMode.Binary:
-                    _msgBuffer = new BinaryMode.MessageBufferBinary(port, _buttonEventCb, _incomingMessageCb, LogStream);
+                    _msgBuffer = new BinaryMode.MessageBufferBinary(port, buttonEvent, incomingMessage, LogStream);
                     _msgGenerator = new BinaryMode.MessageGeneratorBinary(port, LogStream);
-                    port.BaseStream.Write(RawFrames.EscapeSequce, 0, RawFrames.EscapeSequce.Length);
-                    // Device is now in binary mode
                     break;
 
                 default:

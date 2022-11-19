@@ -66,6 +66,7 @@ namespace EvalApplication.Ux.ViewModels
 
         public ObservableCollection<ComButton> AvailableButtons { get; } = new ObservableCollection<ComButton>();
         public ComButton.Color SetColor { get; set; } = new ComButton.Color();
+        public ComButton.TransferMode TransferMode { get; internal set; } = ComButton.TransferMode.Ascii;
 
         public DeviceControlViewModel()
         {
@@ -99,7 +100,7 @@ namespace EvalApplication.Ux.ViewModels
             Debug.WriteLine("-- OnConnect");
             try
             {
-                await ActiveButton.Connect(UpdateButtonState, UpdateStatusMessage, ComButton.TransferMode.Binary);
+                await ActiveButton.Connect(UpdateButtonState, UpdateStatusMessage, TransferMode);
                 ActiveButton.AppendLogger(LogTransferRaw);
                 Connection = ConnectionState.Connected;
             }

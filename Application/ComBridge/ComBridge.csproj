@@ -49,6 +49,8 @@
     <Compile Include="BinaryMode\MessageBufferBinary.cs" />
     <Compile Include="AsciiMode\MessageBufferAscii.cs" />
     <Compile Include="MessageGenerator.cs" />
+    <Compile Include="BinaryMode\MessageGeneratorBinary.cs" />
+    <Compile Include="AsciiMode\MessageGeneratorAscii.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />
