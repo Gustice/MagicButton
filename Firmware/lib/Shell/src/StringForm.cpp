@@ -2,10 +2,12 @@
 
 namespace StringShell {
 
+const std::string cSetEchoCmd("Set Echo:");
 const std::string cGetVersion("Get Version:");
 const std::string cSetColorCmd("Set Color:");
 const std::string cSetEffectCmd("Set Effect:");
 const std::string cGetStatusCmd("Get Status:");
+const std::string cPrompt("$ >");
 
 const std::map<std::string, const Color &> ColorMap{
     {"r", CRed},  {"g", CGreen},  {"b", CBlue},  {"m", CMagenta},

@@ -129,5 +129,6 @@ void cyclicInterruptRoutine(void) {
     _buttonTick.Tick();
     _shell.Tick();
 }
+
 int readButtonPin(void) { return digitalRead(ButtonPin); }
 void setDebugPin(int value) { digitalWrite(DebugPin, value); }

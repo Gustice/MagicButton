@@ -9,10 +9,12 @@
 
 namespace StringShell {
 
+extern const std::string cSetEchoCmd;
 extern const std::string cGetVersion;
 extern const std::string cSetColorCmd;
 extern const std::string cSetEffectCmd;
 extern const std::string cGetStatusCmd;
+extern const std::string cPrompt;
 
 extern const std::map<std::string, const Color &> ColorMap;
 extern const std::map<std::string, VisualizationSate> InputToStateMap;

@@ -19,7 +19,8 @@ void Shell::ConsumeSymbol(int symbol) {
     if (symbol < 0) // eof symbol ...
         return;
     if (_inputType != InputType_t::Raw)
-        _stream.print((char)symbol);
+        if (!_suppressEcho)
+            _stream.print((char)symbol);
 
     char c = (char)symbol;
     if (c == '\r')
@@ -42,6 +43,9 @@ void Shell::ConsumeSymbol(int symbol) {
             return;
         }
 
+        if (c == '*')
+            _suppressEcho = true;
+        
         if (c == '\n') {
             SetupNewLine();
             return;
@@ -96,9 +100,14 @@ void Shell::SetupNewLine() {
     if (_inputType == InputType_t::Raw)
         return;
 
+    _suppressEcho = _disableEcho;
     _asciCommand = "";
-    _stream.print("MB > ");
     _inputType = InputType_t::New;
+
+    if (_disableEcho)
+        return;
+    
+    _stream.print(cPrompt.c_str());
 }
 
 void Shell::PrintWelcome(void) {
@@ -108,7 +117,7 @@ void Shell::PrintWelcome(void) {
     }
 
     _stream.println("** Magic Button Shell **");
-    _stream.println("* Get Help with typen ?-Symbol");
+    _stream.println("* Get Help by type ?-Symbol");
     SetupNewLine();
 }
 
@@ -169,6 +178,14 @@ void Shell::ProcessString(const std::string &cmd) {
         const std::string &e = StateToEffectMap.at(_device.Visualization);
         std::string state = std::string("State:Btn=") + b + ";" + "Effect=" + e + ";";
         PrintResponse(state);
+    } else if (cmd.find(cSetEchoCmd) == 0) {
+        std::string par = cmd.substr(cSetEchoCmd.size());
+        if(par == "on")
+            _disableEcho = false;
+        else if (par =="off")
+            _disableEcho = true;
+        else
+            PrintError("Unknown Effect parameter");
     } else {
         PrintError("Unknown command. See help with '?' ...");
     }

@@ -1,22 +1,7 @@
 /**
  * @file Shell.h
  * @author Gustice
- * @brief Shell-Source for interactive control of the device
- * @details: # Button-Shell
- *   The device support primarily an interactively usable shell that utilizes
- *   human readable commands.
- *   One can also use raw binary commands in order to avoid the bulky strings.
- *   ## Interactive Shell interface
- *   Each line represents an event, or a command. The commands are separated in
- *   following categories:
- *   - Leading `>`-sign indicates following user input or commands.
- *      Note this sign is only present in the master-terminal, it is not transmitted
- *   - Leading `<`-sign indicates responses to commands after successful processing
- *   - Leading `!`-sign indicates error responses to commands or input
- *   - Leading `:`-sign indicates an acyclic event
- *   <br> In case of user input the `>` is already output by the shell for guidance.
- *   ## Input commands
- *   ## Shortcuts for testing
+ * @brief Shell-Source for interactive control of the device. See docs for further details.
  */
 
 #pragma once
@@ -69,6 +54,8 @@ class Shell {
     unsigned _rawIdx = 0;
     std::string _asciCommand;
     TimeOut _timeOut;
+    bool _suppressEcho = false;
+    bool _disableEcho = false;
 
     void SetupNewLine();
     void ProcessRaw(RawShell::CmdHeader_t * header, uint8_t * payload, unsigned length);
