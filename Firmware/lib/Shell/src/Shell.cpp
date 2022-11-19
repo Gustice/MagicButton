@@ -18,9 +18,6 @@ void Shell::Tick(void) {
 void Shell::ConsumeSymbol(int symbol) {
     if (symbol < 0) // eof symbol ...
         return;
-    if (_inputType != InputType_t::Raw)
-        if (!_suppressEcho)
-            _stream.print((char)symbol);
 
     char c = (char)symbol;
     if (c == '\r')
@@ -37,15 +34,20 @@ void Shell::ConsumeSymbol(int symbol) {
             return;
         }
 
+        if (c == '*') {
+            _suppressEcho = true;
+            return;
+        }
+        
+        if (!_suppressEcho)
+            _stream.print((char)symbol);
+
         if (c == '?') {
             PrintHelp();
             SetupNewLine();
             return;
         }
 
-        if (c == '*')
-            _suppressEcho = true;
-        
         if (c == '\n') {
             SetupNewLine();
             return;
@@ -74,6 +76,9 @@ void Shell::ConsumeSymbol(int symbol) {
     } break;
 
     case InputType_t::Asci: {
+        if (!_suppressEcho)
+            _stream.print((char)symbol);
+
         if (c == '\b') {
             _asciCommand.pop_back();
             return;
@@ -222,7 +227,7 @@ void Shell::ProcessRaw(CmdHeader_t *header, uint8_t *payload, unsigned length) {
     } break;
     case RawCommands::GetStatus: {
         uint8_t pay[2]{(uint8_t)_device.ButtonState, (uint8_t)_device.Visualization};
-        SendRawResponse(cmd, EmptyMsgFlag, pay, sizeof(pay));
+        SendRawResponse(cmd, DoneMsgFlag, pay, sizeof(pay));
     } break;
     default:
         SendRawResponse(UndefinedCommand, ErrorMsgFlag, (const uint8_t *)"EX", 2);
