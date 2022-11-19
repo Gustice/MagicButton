@@ -44,7 +44,11 @@
   <ItemGroup>
     <Compile Include="AsciiMode\AsciiFrames.cs" />
     <Compile Include="ComButton.cs" />
-    <Compile Include="HexMode\RawFrames.cs" />
+    <Compile Include="BinaryMode\RawFrames.cs" />
+    <Compile Include="MessageBuffer.cs" />
+    <Compile Include="BinaryMode\MessageBufferBinary.cs" />
+    <Compile Include="AsciiMode\MessageBufferAscii.cs" />
+    <Compile Include="MessageGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />

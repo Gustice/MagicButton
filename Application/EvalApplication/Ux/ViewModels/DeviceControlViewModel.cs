@@ -1,5 +1,4 @@
 ﻿using ComBridge;
-using EvalApplication.Model;
 using EvalApplication.Ux.Types;
 using Prism.Commands;
 using Prism.Mvvm;
@@ -100,7 +99,7 @@ namespace EvalApplication.Ux.ViewModels
             Debug.WriteLine("-- OnConnect");
             try
             {
-                await ActiveButton.Connect(UpdateButtonState, UpdateStatusMessage);
+                await ActiveButton.Connect(UpdateButtonState, UpdateStatusMessage, ComButton.TransferMode.Binary);
                 ActiveButton.AppendLogger(LogTransferRaw);
                 Connection = ConnectionState.Connected;
             }

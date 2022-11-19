@@ -1,10 +1,8 @@
-﻿using ComBridge.AsciiMode;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO.Ports;
 using System.Linq;
 using System.Management;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -53,16 +51,17 @@ namespace ComBridge
 
         public string Com { get; set; }
         public string Device { get; set; }
-        public Action<string> _incomingMessageCb { get; private set; }
-        public Action<string> _buttonEventCb { get; private set; }
 
         SerialPort _port = null;
-        StringBuilder sBuffer = new StringBuilder();
+        MessageBuffer _msgBuffer;
+        MessageGenerator _msgGenerator;
+
         private Action<Dircetion, string> _logTransfer;
+        private TransferMode _mode;
+        protected Action<string> _incomingMessageCb;
+        protected Action<string> _buttonEventCb;
 
-        public bool IsActive => _port != null && _port.IsOpen;
-
-        public async Task Connect(Action<string> buttonEvent, Action<string> incomingMessage)
+        public async Task Connect(Action<string> buttonEvent, Action<string> incomingMessage, ComButton.TransferMode mode)
         {
             _port = new SerialPort();
 
@@ -73,106 +72,56 @@ namespace ComBridge
             _port.StopBits = StopBits.One;
             _port.Handshake = Handshake.None;
             _port.Parity = Parity.None;
-            //_port.RtsEnable = true;
-            _port.DtrEnable = true;
+
+            _mode = mode;
 
             _port.Open();
+            StartupSequence(_port, _mode);
+
             await Task.Delay(1);
 
             _port.DiscardInBuffer();
             _port.DiscardOutBuffer();
-            _port.DataReceived += OnDataReceived;
 
             _buttonEventCb = buttonEvent;
             _incomingMessageCb = incomingMessage;
         }
 
+        private void StartupSequence(SerialPort port, TransferMode mode)
+        {
+            switch (mode)
+            {
+                case TransferMode.Ascii:
+                    _msgBuffer = new AsciiMode.MessageBufferAscii(port, _buttonEventCb, _incomingMessageCb, LogStream);
+                    _msgGenerator = new AsciiMode.MessageGeneratorAscii(port, LogStream);
+                    break;
+
+                case TransferMode.Binary:
+                    _msgBuffer = new BinaryMode.MessageBufferBinary(port, _buttonEventCb, _incomingMessageCb, LogStream);
+                    _msgGenerator = new BinaryMode.MessageGeneratorBinary(port, LogStream);
+                    port.BaseStream.Write(RawFrames.EscapeSequce, 0, RawFrames.EscapeSequce.Length);
+                    // Device is now in binary mode
+                    break;
+
+                default:
+                    break;
+            }
+
+            port.RtsEnable = true;
+        }
+
         public void AppendLogger(Action<Dircetion, string> logTransfer) => _logTransfer = logTransfer;
+        private void LogStream(Dircetion dir, string msg) => _logTransfer?.Invoke(dir, msg);
 
-        public async Task SetVisualizationState(VisualizationSate state)
-        {
-            var cmd = $"{AsciiFrames.SetEffectCmd}{AsciiFrames.StateToEffectMap[state]}";
-            await SendAsciiCommand(cmd);
-            return;
-        }
+        public async Task SetVisualizationState(VisualizationSate state) 
+            => await _msgGenerator?.SetVisualizationState(state);
 
-        public async Task SetColor(Color color)
-        {
-            var cmd = $"{AsciiFrames.SetColorCmd}{color.Red:X2},{color.Green:X2},{color.Blue:X2},{color.White:X2}";
-            await SendAsciiCommand(cmd);
-
-            return;
-        }
+        public async Task SetColor(Color color) 
+            => await _msgGenerator?.SetColor(color);
 
         public async Task ReadStates()
-        {
-            var cmd = $"{AsciiFrames.GetStatusCmd}";
-            await SendAsciiCommand(cmd);
+            => await _msgGenerator?.ReadStates();
 
-            return;
-        }
-
-        void ProcessIncomingMessag(string message)
-        {
-            if (message.StartsWith(":Btn:"))
-            {
-                _buttonEventCb(message.Substring(":Btn:".Length) /*new ButtonEvent(ButtonEvent.EventType.Event, stream)*/);
-                return;
-            }
-            if (message.StartsWith("<State:"))
-            {
-                var sStr = message.Substring("<State:".Length);
-                var fields = sStr.Split(';');
-                _buttonEventCb(fields[0]);
-                _incomingMessageCb(message);
-            }
-
-            _incomingMessageCb(message /*new ButtonEvent(ButtonEvent.EventType.Response, stream)*/);
-        }
-
-        async Task SendAsciiCommand(string command)
-        {
-            await WriteAsync(Encoding.ASCII.GetBytes(command + "\n"));
-            _logTransfer?.Invoke(Dircetion.ToDevice, ">"+command);
-            return;
-        }
-
-        async Task WriteAsync(byte[] data)
-        {
-            if (!IsActive)
-                return;
-
-            //DiscardInBuffer();
-            await _port.BaseStream.WriteAsync(data, 0, data.Length);
-        }
-
-        private void OnDataReceived(object sender, SerialDataReceivedEventArgs e)
-        {
-            //var input = _port.ReadExisting();
-            //Console.WriteLine(input);
-
-            while (_port.BytesToRead > 0)
-            {
-                var c = (char)_port.ReadByte();
-                if (c == '\r')
-                    continue;
-
-                if (c == '\n')
-                {
-                    var s = sBuffer.ToString();
-                    ProcessIncomingMessag(s);
-                    _logTransfer?.Invoke(Dircetion.FromDevice, s);
-                    sBuffer = new StringBuilder();
-                    continue;
-                }
-
-                if (sBuffer.Length == AsciiFrames.PromptInit.Length)
-                    if (sBuffer.ToString() == AsciiFrames.PromptInit)
-                        sBuffer.Clear(); // Clear Shell Prompt
-                
-                sBuffer.Append(c);
-            }
-        }
 
         readonly static Regex ComNameMatcher = new Regex(@".*\((?<Com>[^)]*)\)");
         public static List<ComButton> GetButtons()

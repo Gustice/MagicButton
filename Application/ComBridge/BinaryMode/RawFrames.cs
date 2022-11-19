@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ComBridge.HexMode
+namespace ComBridge.BinaryMode
 {
     internal class RawFrames
     {
+        const byte Escape = 0x1B;
+        public readonly static byte[] EscapeSequce = { Escape };
     }
-
 
     enum RawCommands
     {
@@ -29,9 +30,9 @@ namespace ComBridge.HexMode
 
     struct CmdHeader_t
     {
-        byte command; // Command e_Commands
-        byte flags;
-        byte length; // Message length
+        public byte command; // Command e_Commands
+        public byte flags;
+        public byte length; // Message length
     };
 
     struct CmdFlags_t

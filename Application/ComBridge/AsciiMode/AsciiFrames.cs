@@ -5,6 +5,7 @@ namespace ComBridge.AsciiMode
 {
     internal class AsciiFrames
     {
+        public const string SetEcho = "Set Echo:";
         public const string GetVersion = "Get Version:";
         public const string SetColorCmd = "Set Color:";
         public const string SetEffectCmd = "Set Effect:";
