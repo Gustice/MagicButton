@@ -186,6 +186,8 @@ extern const Color CMagenta;
 extern const Color CCyan;
 /// Yellow color object constant
 extern const Color CYellow;
+/// Orange color object constant
+extern const Color COrange;
 /// White color object constant
 extern const Color CWhite;
 /// Warm white color object constant (with higher red channel value)

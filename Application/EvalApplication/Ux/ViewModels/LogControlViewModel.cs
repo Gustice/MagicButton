@@ -1,9 +1,7 @@
 ﻿using ComBridge;
-using EvalApplication.Model;
 using Prism.Commands;
 using Prism.Mvvm;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows.Threading;
 
@@ -18,16 +16,17 @@ namespace EvalApplication.Ux.ViewModels
         private Dispatcher _dispatcher;
         private Action<ComButton.TransferMode> _newModeCallback;
         public bool HexModeIsActive => _transferMode == ComButton.TransferMode.Binary;
+        
         public LogControlViewModel()
         {
-            Items.Add(new LogMessage(LogType.Message, "Some Message"));
-            Items.Add(new LogMessage(LogType.Request, "Some Request"));
-            Items.Add(new LogMessage(LogType.Response, "Some Response"));
-            Items.Add(new LogMessage(LogType.Error, "Some Error"));
-            Items.Add(new LogMessage(LogType.Request, "Some Event"));
+            Items.Add(new LogMessage(LogTopic.Message, "Some Message"));
+            Items.Add(new LogMessage(LogTopic.Request, "Some Request"));
+            Items.Add(new LogMessage(LogTopic.Response, "Some Response"));
+            Items.Add(new LogMessage(LogTopic.Error, "Some Error"));
+            Items.Add(new LogMessage(LogTopic.Request, "Some Event"));
         }
 
-        public LogControlViewModel(Action<ComButton.TransferMode> newMode)
+        public LogControlViewModel(StatusBarViewModel statusBar, Action<ComButton.TransferMode> newMode)
         {
             ClearCommand = new DelegateCommand(() => Items.Clear());
             ToHexModeCommand = new DelegateCommand(OnToHexMode);
@@ -46,19 +45,7 @@ namespace EvalApplication.Ux.ViewModels
             RaisePropertyChanged(nameof(HexModeIsActive));
         }
 
-        static Dictionary<char, LogType> CharToTypeCode = new Dictionary<char, LogType>()
-        {
-            {'*', LogType.Message},
-            {'>', LogType.Request},
-            {'<', LogType.Response },
-            {'!', LogType.Error},
-            {':', LogType.Event},
-        };
-
-        internal void AddLog(string message)
-        {
-            var item = new LogMessage(/*CharToTypeCode[message[0]]*/LogType.Event, message);
-            _dispatcher.Invoke(() => Items.Add(item));
-        }
+        internal void AddLog(LogMessage message) 
+            => _dispatcher.Invoke(() => Items.Add(message));
     }
 }

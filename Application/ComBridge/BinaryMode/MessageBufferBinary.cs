@@ -2,15 +2,22 @@
 using System.Collections.Generic;
 using System.IO.Ports;
 using System.Text;
-using static ComBridge.ComButton;
 
 namespace ComBridge.BinaryMode
 {
     internal class MessageBufferBinary : MessageBuffer
     {
+
+
+        static Dictionary<byte, LogTopic> CharToTypeCode = new Dictionary<byte, LogTopic>()
+        {
+            //{'*', LogTopic.Message},
+        };
+
+
         public MessageBufferBinary(SerialPort port, Action<string> buttonEvent,
             Action<string> incomingMessage,
-            Action<Dircetion, string> logTransfer)
+            Action<LogMessage> logTransfer)
             : base(port, buttonEvent, incomingMessage, logTransfer)
         {
 
@@ -47,7 +54,8 @@ namespace ComBridge.BinaryMode
             foreach (byte b in message)
                 sb.Append($"{b:X2}, ");
             var msgString = sb.ToString().TrimEnd(new char[] { ' ', ',' });
-            _logTransfer?.Invoke(Dircetion.FromDevice, msgString);
+
+            _logTransfer?.Invoke(new LogMessage(LogTopic.Message, msgString));
 
             var command = new CmdHeader_t { command = message[0], flags = message[1], length = message[2] };
 

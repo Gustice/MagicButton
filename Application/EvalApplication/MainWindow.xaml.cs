@@ -1,6 +1,5 @@
 ﻿using ComBridge;
 using EvalApplication.Ux.ViewModels;
-using System;
 using System.Windows;
 
 namespace EvalApplication
@@ -12,13 +11,16 @@ namespace EvalApplication
     {
         public DeviceControlViewModel DeviceControl { get; } 
         public LogControlViewModel LogControl { get; } 
+        public StatusBarViewModel StatusBar { get; } 
+
 
         public MainWindow()
         {
             InitializeComponent();
 
-            LogControl = new LogControlViewModel(newMode);
-            DeviceControl = new DeviceControlViewModel(LogControl);
+            StatusBar = new StatusBarViewModel();
+            LogControl = new LogControlViewModel(StatusBar, newMode);
+            DeviceControl = new DeviceControlViewModel(LogControl, StatusBar);
 
             DataContext = this;
         }

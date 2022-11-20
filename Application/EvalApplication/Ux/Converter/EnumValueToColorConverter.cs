@@ -4,6 +4,8 @@ using System.Windows.Data;
 using System.Globalization;
 using System.Windows.Media;
 using EvalApplication.Ux.Types;
+using ComBridge;
+using static EvalApplication.Model.Note;
 
 namespace EvalApplication.Ux.Converter
 {
@@ -11,11 +13,13 @@ namespace EvalApplication.Ux.Converter
     {
         Dictionary<Type, List<Color>> _knownColors = new Dictionary<Type, List<Color>>() {
             // Message, Request, Response, Error, Event
-            {typeof(Model.LogType), new List<Color>{ Colors.DarkGreen, Colors.Black, Colors.DarkBlue, Colors.DarkRed, Colors.DarkViolet} },
+            {typeof(LogTopic), new List<Color>{ Colors.DarkGreen, Colors.Black, Colors.DarkBlue, Colors.DarkRed, Colors.DarkViolet} },
             // Initial, Connected, Disconnected, FailedToConnect,
             {typeof(ConnectionState), new List<Color>{ Colors.DarkGray, Colors.LightGreen, Colors.LightBlue, Colors.LightSalmon} },
             // Passive, Acitve
             {typeof(Activation), new List<Color>{ Colors.LightBlue, Colors.LightGreen } },
+
+            {typeof(NoteType), new List<Color>{ Colors.DarkBlue, Colors.DarkOrange, Colors.DarkRed } },
             };
 
         readonly SolidColorBrush errorBrush = new SolidColorBrush(Colors.Red);

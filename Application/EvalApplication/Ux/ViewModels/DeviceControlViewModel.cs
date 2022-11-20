@@ -75,7 +75,7 @@ namespace EvalApplication.Ux.ViewModels
 
         private LogControlViewModel _logControl;
 
-        public DeviceControlViewModel(LogControlViewModel logControl)
+        public DeviceControlViewModel(LogControlViewModel logControl, StatusBarViewModel statusBar)
         {
             _logControl = logControl;
 
@@ -183,7 +183,7 @@ namespace EvalApplication.Ux.ViewModels
             return;
         }
 
-        private void LogTransferRaw(ComButton.Dircetion dir, string message)
+        private void LogTransferRaw(LogMessage message)
         {
             Dispatcher.CurrentDispatcher.Invoke (() => 
             _logControl.AddLog(message) );

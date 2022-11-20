@@ -7,7 +7,7 @@ namespace ComBridge.BinaryMode
 {
     internal class MessageGeneratorBinary : MessageGenerator
     {
-        public MessageGeneratorBinary(SerialPort port, Action<Dircetion, string> logTransfer) : base(port, logTransfer)
+        public MessageGeneratorBinary(SerialPort port, Action<LogMessage> logTransfer) : base(port, logTransfer)
         {
             port.BaseStream.Write(RawFrames.EscapeSequce, 0, RawFrames.EscapeSequce.Length);
             // Device is now in binary mode

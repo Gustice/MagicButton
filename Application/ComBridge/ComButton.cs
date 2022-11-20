@@ -35,12 +35,6 @@ namespace ComBridge
             Binary,
         }
 
-        public enum Dircetion
-        {
-            ToDevice,
-            FromDevice
-        }
-
         public class Color
         {
             public byte Red { get; set; }
@@ -56,7 +50,7 @@ namespace ComBridge
         MessageBuffer _msgBuffer;
         MessageGenerator _msgGenerator;
 
-        private Action<Dircetion, string> _logTransfer;
+        private Action<LogMessage> _logTransfer;
         private TransferMode _mode;
         protected Action<string> _incomingMessageCb;
         protected Action<string> _buttonEventCb;
@@ -108,8 +102,8 @@ namespace ComBridge
             port.RtsEnable = true;
         }
 
-        public void AppendLogger(Action<Dircetion, string> logTransfer) => _logTransfer = logTransfer;
-        private void LogStream(Dircetion dir, string msg) => _logTransfer?.Invoke(dir, msg);
+        public void AppendLogger(Action<LogMessage> logTransfer) => _logTransfer = logTransfer;
+        private void LogStream(LogMessage msg) => _logTransfer?.Invoke(msg);
 
         public async Task SetVisualizationState(VisualizationSate state) 
             => await _msgGenerator?.SetVisualizationState(state);

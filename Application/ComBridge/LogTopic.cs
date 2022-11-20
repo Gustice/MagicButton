@@ -1,6 +1,6 @@
-﻿namespace EvalApplication.Model
+﻿namespace ComBridge
 {
-    public enum LogType
+    public enum LogTopic
     {
         Message,
         Request,

@@ -52,12 +52,7 @@
         </Grid>
 
         <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="30" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <TextBlock Text="Notes and stuff ..."
-                       Grid.Column="1" />
+            <views:StatusBarView DataContext="{Binding StatusBar}" />
         </Grid>
     </Grid>
 

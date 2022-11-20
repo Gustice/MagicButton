@@ -9,9 +9,9 @@ namespace ComBridge
     internal abstract class MessageGenerator
     {
         private readonly SerialPort _port;
-        protected Action<Dircetion, string> _logTransfer;
+        protected Action<LogMessage> _logTransfer;
         public bool IsActive => _port != null && _port.IsOpen;
-        public MessageGenerator(SerialPort port, Action<Dircetion, string> logTransfer)
+        public MessageGenerator(SerialPort port, Action<LogMessage> logTransfer)
         {
             _port = port;
             _logTransfer = logTransfer;
@@ -24,7 +24,7 @@ namespace ComBridge
         public async Task SendAsciiCommand(string command)
         {
             await WriteAsync(Encoding.ASCII.GetBytes(command + "\n"));
-            _logTransfer?.Invoke(Dircetion.ToDevice, ">" + command);
+            _logTransfer?.Invoke(new LogMessage(LogTopic.Request, ">" + command));
             return;
         }
 

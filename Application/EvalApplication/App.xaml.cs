@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
-using EvalApplication.Definitions;
-using EvalApplication.Ux.Views;
+﻿using System.Windows;
 using Prism.Ioc;
 using Prism.Regions;
 
@@ -34,11 +26,6 @@ namespace EvalApplication
         }
         private void RegisterViews(IRegionManager rm)
         {
-            //rm.RegisterViewWithRegion(RegionNames.ControlRegion, typeof(DeviceControlView));
-            //rm.RegisterViewWithRegion(RegionNames.LoggerRegion, typeof(LogControlView));
-
-            //rm.RequestNavigate(RegionNames.ControlRegion, nameof(DeviceControlView));
-            //rm.RequestNavigate(RegionNames.LoggerRegion, nameof(LogControlView));
         }
     }
 }

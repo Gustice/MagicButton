@@ -8,7 +8,7 @@ namespace ComBridge.AsciiMode
 {
     internal class MessageGeneratorAscii : MessageGenerator
     {
-        public MessageGeneratorAscii(SerialPort port, Action<Dircetion, string> logTransfer) : base(port, logTransfer)
+        public MessageGeneratorAscii(SerialPort port, Action<LogMessage> logTransfer) : base(port, logTransfer)
         {
             
         }

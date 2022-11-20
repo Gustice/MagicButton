@@ -7,7 +7,7 @@ namespace ComBridge
     internal abstract class MessageBuffer
     {
         private readonly SerialPort _port;
-        protected Action<Dircetion, string> _logTransfer;
+        protected Action<LogMessage> _logTransfer;
         protected Action<string> _incomingMessageCb;
         protected Action<string> _buttonEventCb;
 
@@ -25,7 +25,7 @@ namespace ComBridge
             SerialPort port,
             Action<string> buttonEvent,
             Action<string> incomingMessage,
-            Action<Dircetion, string> logTransfer)
+            Action<LogMessage> logTransfer)
         {
             _port = port;
             _logTransfer = logTransfer;

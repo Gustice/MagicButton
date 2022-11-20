@@ -32,6 +32,7 @@
                         Converter={StaticResource BoolToColor}}"
                     ToolTip="Will latch to hex mode" />
             <Button Content="Clear"
+                    Command="{Binding ClearCommand}"
                     Grid.Column="2" />
         </Grid>
 

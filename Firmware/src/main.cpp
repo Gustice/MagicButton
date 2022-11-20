@@ -82,7 +82,7 @@ void loop() {
         switch (_device.ButtonState) {
         case Button::State::Pressed:
             _shell.SendButtonEvent(Button::State::Pressed);
-            pColorOverride = &CRed;
+            pColorOverride = &COrange;
             break;
 
         case Button::State::Released:
@@ -101,12 +101,12 @@ void loop() {
         if (pColorOverride != nullptr) {
             Color::Rgbw_t c = pColorOverride->GetColor();
             for (size_t i = 0; i < PixelCount; i++) {
-                _strip.setPixelColor(i, c.red >> 2, c.green >> 2, c.blue >> 2, 0);
+                _strip.setPixelColor(i, c.red, c.green, c.blue, 0);
             }
         } else {
             for (size_t i = 0; i < PixelCount; i++) {
                 Color::Rgbw_t c = colors[i].GetColor();
-                _strip.setPixelColor(i, c.red >> 2, c.green >> 2, c.blue >> 2, 0);
+                _strip.setPixelColor(i, c.red, c.green, c.blue, 0);
             }
         }
         _strip.show();

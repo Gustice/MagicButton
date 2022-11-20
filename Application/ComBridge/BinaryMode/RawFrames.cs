@@ -35,12 +35,12 @@ namespace ComBridge.BinaryMode
         public byte length; // Message length
     };
 
-    struct CmdFlags_t
+    [Flags]
+    enum CmdFlags_t : byte
     {
-        //bool doneBit : 1;
-        //byte spare : 5;
-        //byte eventBit : 1;
-        //byte errorBit : 1;
+        doneBit = 0x01,
+        eventBit = 0x40,
+        errorBit = 0x80,
     };
 
     class SetColorCommand_t

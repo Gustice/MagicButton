@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO.Ports;
 using System.Text;
 using static ComBridge.ComButton;
@@ -7,9 +8,19 @@ namespace ComBridge.AsciiMode
 {
     internal class MessageBufferAscii : MessageBuffer
     {
+        static Dictionary<char, LogTopic> CharToTypeCode = new Dictionary<char, LogTopic>()
+        {
+            {'*', LogTopic.Message},
+            {'>', LogTopic.Request},
+            {'<', LogTopic.Response},
+            {'!', LogTopic.Error},
+            {':', LogTopic.Event},
+        };
+
+
         public MessageBufferAscii(SerialPort port, Action<string> buttonEvent,
             Action<string> incomingMessage,
-            Action<Dircetion, string> logTransfer)
+            Action<LogMessage> logTransfer)
             : base(port, buttonEvent, incomingMessage, logTransfer)
         {
             port.DtrEnable = true;
@@ -43,7 +54,7 @@ namespace ComBridge.AsciiMode
 
         void ProcessIncomingMessag(string message)
         {
-            _logTransfer?.Invoke(Dircetion.FromDevice, message);
+            _logTransfer?.Invoke(new LogMessage(CharToTypeCode[message[0]], message));
 
             if (message.StartsWith(":Btn:"))
             {

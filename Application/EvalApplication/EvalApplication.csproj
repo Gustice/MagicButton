@@ -56,8 +56,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Definitions\RegionNames.cs" />
-    <Compile Include="Model\LogMessage.cs" />
-    <Compile Include="Model\LogType.cs" />
+    <Compile Include="Model\Note.cs" />
     <Compile Include="Ux\Converter\BoolToColorConverter.cs" />
     <Compile Include="Ux\Converter\EnumValueToColorConverter.cs" />
     <Compile Include="Ux\Converter\HexByteConverter.cs" />
@@ -65,11 +64,15 @@
     <Compile Include="Ux\Types\ConnectionState.cs" />
     <Compile Include="Ux\ViewModels\DeviceControlViewModel.cs" />
     <Compile Include="Ux\ViewModels\LogControlViewModel.cs" />
+    <Compile Include="Ux\ViewModels\StatusBarViewModel.cs" />
     <Compile Include="Ux\Views\DeviceControlView.xaml.cs">
       <DependentUpon>DeviceControlView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Ux\Views\LogControlView.xaml.cs">
       <DependentUpon>LogControlView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Ux\Views\StatusBarView.xaml.cs">
+      <DependentUpon>StatusBarView.xaml</DependentUpon>
     </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -88,6 +91,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Ux\Views\LogControlView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Ux\Views\StatusBarView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -129,5 +136,6 @@
       <Name>ComBridge</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
