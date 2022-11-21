@@ -17,6 +17,9 @@ namespace EvalApplication.Ux.ViewModels
         public double WorkLoad { get; set; } = 5;
 
         public DelegateCommandBase ConnectCommand { get; }
+        bool CanConnect() => ActiveButton != null;
+        bool CanInteract(string _ = "") => ActiveButton?.IsConnected ?? false;
+        bool CanInteract() => ActiveButton?.IsConnected ?? false;
         public DelegateCommand<string> SetStateCommand { get; }
         public DelegateCommandBase SetColorCommand { get; }
         public DelegateCommandBase ReadStateCommand { get; }
@@ -79,10 +82,10 @@ namespace EvalApplication.Ux.ViewModels
         {
             _logControl = logControl;
 
-            ConnectCommand = new DelegateCommand(OnConnect);
-            SetStateCommand = new DelegateCommand<string>(OnSetState);
-            SetColorCommand = new DelegateCommand(OnSetColor);
-            ReadStateCommand = new DelegateCommand(OnReadState);
+            ConnectCommand = new DelegateCommand(OnConnect, CanConnect).ObservesProperty(() => ActiveButton);
+            SetStateCommand = new DelegateCommand<string>(OnSetState, CanInteract).ObservesProperty(() => Connection);
+            SetColorCommand = new DelegateCommand(OnSetColor, CanInteract).ObservesProperty(() => Connection);
+            ReadStateCommand = new DelegateCommand(OnReadState, CanInteract).ObservesProperty(() => Connection);
             SetdropDownCommand = new DelegateCommand(OnSetdropDown);
             SetWorkSimulationCommand = new DelegateCommand(OnSetWorkSimulation);
         }

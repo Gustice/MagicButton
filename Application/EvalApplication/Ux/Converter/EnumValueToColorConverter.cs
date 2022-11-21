@@ -11,8 +11,6 @@ namespace EvalApplication.Ux.Converter
     public class EnumValueToColorConverter : IValueConverter
     {
         Dictionary<Type, List<Color>> _knownColors = new Dictionary<Type, List<Color>>() {
-            // Message, Request, Response, Error, Event
-            {typeof(LogTopic), new List<Color>{ Colors.DarkGreen, Colors.Black, Colors.DarkBlue, Colors.DarkRed, Colors.DarkViolet} },
             // Initial, Connected, Disconnected, FailedToConnect,
             {typeof(ConnectionState), new List<Color>{ Colors.DarkGray, Colors.LightGreen, Colors.LightBlue, Colors.LightSalmon} },
             // Passive, Acitve

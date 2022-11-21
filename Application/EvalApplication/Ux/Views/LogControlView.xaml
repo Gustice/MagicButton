@@ -10,8 +10,17 @@
              d:DesignHeight="300"
              d:DesignWidth="200">
     <UserControl.Resources>
-        <converter:EnumValueToColorConverter x:Key="EnumValueToColor" />
         <converter:BoolToColorConverter x:Key="BoolToColor" IfFalse="LightGray" IfTrue="YellowGreen" />
+        <converter:EnumValueToColorConverter x:Key="BackgroundConverter">
+            <converter:EnumValueToColorConverter.OverwriteColor>
+                <Color>DarkGreen</Color>
+                <Color>Black</Color>
+                <Color>DarkBlue</Color>
+                <Color>DarkRed</Color>
+                <Color>DarkViolet</Color>
+            </converter:EnumValueToColorConverter.OverwriteColor>
+        </converter:EnumValueToColorConverter>
+
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -49,11 +58,11 @@
                                        FontWeight="Bold"
                                        FontSize="9"
                                        Text="{Binding TypeCode}"
-                                       Foreground="{Binding Type, Converter={StaticResource EnumValueToColor}}" />
+                                       Foreground="{Binding Type, Converter={StaticResource BackgroundConverter}}" />
                             <TextBlock Grid.Column="1"
                                        FontSize="9"
                                        Text="{Binding Message}"
-                                       Foreground="{Binding Type, Converter={StaticResource EnumValueToColor}}" />
+                                       Foreground="{Binding Type, Converter={StaticResource BackgroundConverter}}" />
                         </Grid>
                     </DataTemplate>
                 </ListView.ItemTemplate>

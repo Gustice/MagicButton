@@ -35,6 +35,8 @@ namespace ComBridge
             Binary,
         }
 
+        public bool IsConnected => _port?.IsOpen ?? false;
+
         public class Color
         {
             public byte Red { get; set; }
