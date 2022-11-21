@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using Prism.Events;
 using Prism.Ioc;
 using Prism.Regions;
 
@@ -16,7 +17,7 @@ namespace EvalApplication
         }
 
         /// <inheritdoc /> // 3. This will be called third
-        protected override Window CreateShell() => new MainWindow();
+        protected override Window CreateShell() => new MainWindow(this.Container.Resolve<IEventAggregator>());
 
         /// <inheritdoc /> // 4. This will be called fourth
         protected override void InitializeShell(Window shell)

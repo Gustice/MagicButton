@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 
-namespace EvalApplication.Model
+namespace EvalApplication.Ux.Types
 {
     public class Note
     {
         static Dictionary<NoteType, string> TypeSignes = new Dictionary<NoteType, string>()
         {
+            {NoteType.NoType, "" },
             {NoteType.Info, "ℹ️" },
             {NoteType.Warning, "⚠️" },
             {NoteType.Error, "‼️" },
@@ -13,6 +14,7 @@ namespace EvalApplication.Model
 
         public enum NoteType
         {
+            NoType,
             Info,
             Warning,
             Error,
@@ -24,7 +26,7 @@ namespace EvalApplication.Model
 
         public Note()
         {
-            Type = NoteType.Info;
+            Type = NoteType.NoType;
             Sign = "";
             Message = "";
         }

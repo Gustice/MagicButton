@@ -56,12 +56,13 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Definitions\RegionNames.cs" />
-    <Compile Include="Model\Note.cs" />
+    <Compile Include="Ux\Types\Note.cs" />
     <Compile Include="Ux\Converter\BoolToColorConverter.cs" />
     <Compile Include="Ux\Converter\EnumValueToColorConverter.cs" />
     <Compile Include="Ux\Converter\HexByteConverter.cs" />
     <Compile Include="Ux\Types\Activation.cs" />
     <Compile Include="Ux\Types\ConnectionState.cs" />
+    <Compile Include="Ux\Types\NoteEvent.cs" />
     <Compile Include="Ux\ViewModels\DeviceControlViewModel.cs" />
     <Compile Include="Ux\ViewModels\LogControlViewModel.cs" />
     <Compile Include="Ux\ViewModels\StatusBarViewModel.cs" />
@@ -136,6 +137,8 @@
       <Name>ComBridge</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Model\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

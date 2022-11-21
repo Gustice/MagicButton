@@ -5,7 +5,6 @@ using System.Globalization;
 using System.Windows.Media;
 using EvalApplication.Ux.Types;
 using ComBridge;
-using static EvalApplication.Model.Note;
 
 namespace EvalApplication.Ux.Converter
 {
@@ -18,13 +17,11 @@ namespace EvalApplication.Ux.Converter
             {typeof(ConnectionState), new List<Color>{ Colors.DarkGray, Colors.LightGreen, Colors.LightBlue, Colors.LightSalmon} },
             // Passive, Acitve
             {typeof(Activation), new List<Color>{ Colors.LightBlue, Colors.LightGreen } },
-
-            {typeof(NoteType), new List<Color>{ Colors.DarkBlue, Colors.DarkOrange, Colors.DarkRed } },
             };
 
         readonly SolidColorBrush errorBrush = new SolidColorBrush(Colors.Red);
 
-        public List<Color> OverwriteColor { get; set; }
+        public List<Color> OverwriteColor { get; set; } = new List<Color>();
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -43,6 +40,14 @@ namespace EvalApplication.Ux.Converter
                 var color = (Color)ColorConverter.ConvertFromString(colors[(int)value]);
                 new SolidColorBrush(color);
             }
+            if (OverwriteColor.Count > 0)
+            {
+                if ((int)value < OverwriteColor.Count)
+                    return new SolidColorBrush(OverwriteColor[(int)value]);
+                else
+                    return errorBrush;
+            }
+
             if (_knownColors.ContainsKey(type))
             {
                 var colors = _knownColors[type];

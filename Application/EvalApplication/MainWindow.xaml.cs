@@ -1,5 +1,7 @@
 ﻿using ComBridge;
+using EvalApplication.Ux.Types;
 using EvalApplication.Ux.ViewModels;
+using Prism.Events;
 using System.Windows;
 
 namespace EvalApplication
@@ -14,15 +16,17 @@ namespace EvalApplication
         public StatusBarViewModel StatusBar { get; } 
 
 
-        public MainWindow()
+        public MainWindow(IEventAggregator ea)
         {
             InitializeComponent();
 
-            StatusBar = new StatusBarViewModel();
+            StatusBar = new StatusBarViewModel(ea);
             LogControl = new LogControlViewModel(StatusBar, newMode);
             DeviceControl = new DeviceControlViewModel(LogControl, StatusBar);
 
             DataContext = this;
+
+            ea.GetEvent<NoteEvent>().Publish(new Note(Note.NoteType.Info, "Startup successful"));
         }
 
         private void newMode(ComButton.TransferMode mode)

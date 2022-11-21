@@ -1,4 +1,5 @@
-﻿using EvalApplication.Model;
+﻿using EvalApplication.Ux.Types;
+using Prism.Events;
 using Prism.Mvvm;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,20 +18,19 @@ namespace EvalApplication.Ux.ViewModels
 
         CancellationTokenSource _propmtToken = new CancellationTokenSource();
 
-
-        async void StartupDemo()
-        {
-            await Task.Delay(System.TimeSpan.FromSeconds(2));
-            PromptMessage(new Note(Note.NoteType.Info, "Startup Successful"));
-        }
-
         public StatusBarViewModel()
         {
-            StartupDemo();
+            StatusNote = new Note(Note.NoteType.Info, "Info Message");
         }
 
-        public async void PromptMessage(Note newNote, uint time = 3)
+        public StatusBarViewModel(IEventAggregator ea)
         {
+            ea.GetEvent<NoteEvent>().Subscribe(a => PromptMessage(a));
+        }
+
+        public async void PromptMessage(Note newNote)
+        {
+            uint time = 3;
             _propmtToken.Cancel();
 
             _propmtToken = new CancellationTokenSource();
