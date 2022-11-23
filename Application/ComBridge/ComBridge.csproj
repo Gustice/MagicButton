@@ -43,7 +43,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AsciiMode\AsciiFrames.cs" />
-    <Compile Include="AsciiMode\LogTopic.cs" />
     <Compile Include="ComButton.cs" />
     <Compile Include="BinaryMode\RawFrames.cs" />
     <Compile Include="LogMessage.cs" />

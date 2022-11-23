@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO.Ports;
-using static ComBridge.ComButton;
 
 namespace ComBridge
 {
@@ -9,7 +8,7 @@ namespace ComBridge
         private readonly SerialPort _port;
         protected Action<LogMessage> _logTransfer;
         protected Action<string> _incomingMessageCb;
-        protected Action<string> _buttonEventCb;
+        protected Action<ComButton.ButtonEvent> _buttonEventCb;
 
         //var input = _port.ReadExisting();
         //Console.WriteLine(input);
@@ -23,7 +22,7 @@ namespace ComBridge
 
         public MessageBuffer(
             SerialPort port,
-            Action<string> buttonEvent,
+            Action<ComButton.ButtonEvent> buttonEvent,
             Action<string> incomingMessage,
             Action<LogMessage> logTransfer)
         {

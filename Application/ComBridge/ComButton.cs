@@ -35,6 +35,12 @@ namespace ComBridge
             Binary,
         }
 
+        public enum ButtonEvent
+        {
+            Pressed,
+            Released
+        }
+
         public bool IsConnected => _port?.IsOpen ?? false;
 
         public class Color
@@ -55,9 +61,9 @@ namespace ComBridge
         private Action<LogMessage> _logTransfer;
         private TransferMode _mode;
         protected Action<string> _incomingMessageCb;
-        protected Action<string> _buttonEventCb;
+        protected Action<ButtonEvent> _buttonEventCb;
 
-        public async Task Connect(Action<string> buttonEvent, Action<string> incomingMessage, ComButton.TransferMode mode)
+        public async Task Connect(Action<ButtonEvent> buttonEvent, Action<string> incomingMessage, ComButton.TransferMode mode)
         {
             _buttonEventCb = buttonEvent;
             _incomingMessageCb = incomingMessage;
@@ -83,7 +89,7 @@ namespace ComBridge
             _port.DiscardOutBuffer();
         }
 
-        private void StartupSequence(SerialPort port, TransferMode mode, Action<string> buttonEvent, Action<string> incomingMessage)
+        private void StartupSequence(SerialPort port, TransferMode mode, Action<ButtonEvent> buttonEvent, Action<string> incomingMessage)
         {
             switch (mode)
             {

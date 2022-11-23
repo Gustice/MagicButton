@@ -1,5 +1,4 @@
-﻿using ComBridge.BinaryMode;
-using System;
+﻿using System;
 using System.IO.Ports;
 using System.Threading.Tasks;
 using static ComBridge.ComButton;
@@ -10,7 +9,7 @@ namespace ComBridge.AsciiMode
     {
         public MessageGeneratorAscii(SerialPort port, Action<LogMessage> logTransfer) : base(port, logTransfer)
         {
-            
+            SendAsciiCommand("*Set Echo:off");
         }
 
         public override async Task ReadStates()

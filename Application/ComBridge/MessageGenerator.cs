@@ -24,7 +24,7 @@ namespace ComBridge
         public async Task SendAsciiCommand(string command)
         {
             await WriteAsync(Encoding.ASCII.GetBytes(command + "\n"));
-            _logTransfer?.Invoke(new LogMessage(LogTopic.Request, ">" + command));
+            _logTransfer?.Invoke(new LogMessage(LogTopic.Request, command));
             return;
         }
 

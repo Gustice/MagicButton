@@ -120,6 +120,7 @@
                     Grid.Row="1"
                     Command="{Binding ReadStateCommand}" />
             <TextBox Grid.Row="1"
+                     Text="{Binding State}"
                      Grid.Column="1" />
         </Grid>
 

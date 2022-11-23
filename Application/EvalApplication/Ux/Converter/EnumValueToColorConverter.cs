@@ -4,7 +4,6 @@ using System.Windows.Data;
 using System.Globalization;
 using System.Windows.Media;
 using EvalApplication.Ux.Types;
-using ComBridge;
 
 namespace EvalApplication.Ux.Converter
 {

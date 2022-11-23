@@ -46,7 +46,8 @@
         </Grid>
 
         <ScrollViewer Grid.Row="1">
-            <ListView ItemsSource="{Binding Items}">
+            <ListView ItemsSource="{Binding Items}" 
+                      PreviewMouseWheel="HandlePreviewMouseWheel">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <Grid>

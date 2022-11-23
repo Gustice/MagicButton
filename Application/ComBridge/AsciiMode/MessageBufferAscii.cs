@@ -16,8 +16,9 @@ namespace ComBridge.AsciiMode
             {':', LogTopic.Event},
         };
 
+        const string PromptStart = "$ ";
 
-        public MessageBufferAscii(SerialPort port, Action<string> buttonEvent,
+        public MessageBufferAscii(SerialPort port, Action<ComButton.ButtonEvent> buttonEvent,
             Action<string> incomingMessage,
             Action<LogMessage> logTransfer)
             : base(port, buttonEvent, incomingMessage, logTransfer)
@@ -53,21 +54,25 @@ namespace ComBridge.AsciiMode
 
         void ProcessIncomingMessag(string message)
         {
+            if (message.StartsWith(PromptStart))
+                message = message.Substring(PromptStart.Length);
+
             _logTransfer?.Invoke(new LogMessage(CharToTypeCode[message[0]], message));
 
             if (message.StartsWith(":Btn:"))
             {
-                _buttonEventCb(message.Substring(":Btn:".Length) /*new ButtonEvent(ButtonEvent.EventType.Event, stream)*/);
+                var eStr = message.Substring(":Btn:".Length);
+
+                _buttonEventCb(eStr == "L->H" ? ComButton.ButtonEvent.Pressed : ComButton.ButtonEvent.Released ); ;
                 return;
             }
             if (message.StartsWith("<State:"))
             {
                 var sStr = message.Substring("<State:".Length);
                 var fields = sStr.Split(';');
-                _buttonEventCb(fields[0]);
+                //_buttonEventCb(fields[0]);
+                _incomingMessageCb(message /*new ButtonEvent(ButtonEvent.EventType.Response, stream)*/);
             }
-
-            _incomingMessageCb(message /*new ButtonEvent(ButtonEvent.EventType.Response, stream)*/);
         }
     }
 }

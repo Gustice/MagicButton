@@ -139,14 +139,14 @@ namespace EvalApplication.Ux.ViewModels
             await ActiveButton.ReadStates();
         }
 
-        private async void UpdateButtonState(string state)
+        private async void UpdateButtonState(ComButton.ButtonEvent state)
         {
             try
             {
-                BtnState = state;
+                BtnState = state  == ComButton.ButtonEvent.Pressed ? "L->H" : "H->L";
                 if (WorkSiumlation != Activation.Active)
                     return;
-                if (state != "L->H")
+                if (state != ComButton.ButtonEvent.Pressed)
                     return;
 
                 await ActiveButton.SetVisualizationState(ComButton.VisualizationSate.Busy);

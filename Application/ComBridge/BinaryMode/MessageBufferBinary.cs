@@ -15,7 +15,7 @@ namespace ComBridge.BinaryMode
         };
 
 
-        public MessageBufferBinary(SerialPort port, Action<string> buttonEvent,
+        public MessageBufferBinary(SerialPort port, Action<ComButton.ButtonEvent> buttonEvent,
             Action<string> incomingMessage,
             Action<LogMessage> logTransfer)
             : base(port, buttonEvent, incomingMessage, logTransfer)
@@ -36,7 +36,7 @@ namespace ComBridge.BinaryMode
                 _buffer.Add(b);
 
                 if (_buffer.Count == 3)
-                    _toRead = b;
+                    _toRead = b + HeaderSize;
 
                 if (_buffer.Count == _toRead)
                 {
@@ -57,19 +57,18 @@ namespace ComBridge.BinaryMode
 
             _logTransfer?.Invoke(new LogMessage(LogTopic.Message, msgString));
 
-            var command = new CmdHeader_t { command = message[0], flags = message[1], length = message[2] };
+            var command = new RawFrames.Header_t { command = message[0], flags = message[1], length = message[2] };
 
-            if (command.command == (byte)RawEvents.ButtonEvent)
+            if (command.command == (byte)RawFrames.Events.ButtonEvent)
             {
-                _buttonEventCb(message[3].ToString());
+                _buttonEventCb(message[3] == 'R' ? ComButton.ButtonEvent.Pressed : ComButton.ButtonEvent.Released);
                 return;
             }
-            if (command.command == (byte)RawCommands.GetStatus)
+            if (command.command == (byte)RawFrames.Commands.GetStatus)
             {
-                _buttonEventCb(message[3].ToString());
+                //_buttonEventCb(message[3].ToString());
+                _incomingMessageCb(msgString);
             }
-
-            _incomingMessageCb(msgString);
         }
     }
 }
