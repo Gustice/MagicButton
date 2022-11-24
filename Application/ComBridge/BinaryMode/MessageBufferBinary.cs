@@ -7,8 +7,6 @@ namespace ComBridge.BinaryMode
 {
     internal class MessageBufferBinary : MessageBuffer
     {
-
-
         static Dictionary<byte, LogTopic> CharToTypeCode = new Dictionary<byte, LogTopic>()
         {
             //{'*', LogTopic.Message},

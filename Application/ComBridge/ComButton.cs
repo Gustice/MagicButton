@@ -63,11 +63,32 @@ namespace ComBridge
         protected Action<string> _incomingMessageCb;
         protected Action<ButtonEvent> _buttonEventCb;
 
+        public SerialPort ConnectDirectly()
+        {
+            PortConnect();
+            _port.DtrEnable = true;
+
+            return _port;
+        }
+
         public async Task Connect(Action<ButtonEvent> buttonEvent, Action<string> incomingMessage, ComButton.TransferMode mode)
         {
             _buttonEventCb = buttonEvent;
             _incomingMessageCb = incomingMessage;
+            _mode = mode;
+            
+            PortConnect();
 
+            StartupSequence(_port, _mode, buttonEvent, incomingMessage);
+
+            await Task.Delay(1);
+
+            _port.DiscardInBuffer();
+            _port.DiscardOutBuffer();
+        }
+
+        private void PortConnect()
+        {
             _port = new SerialPort();
 
             _port.PortName = Com;
@@ -77,16 +98,7 @@ namespace ComBridge
             _port.StopBits = StopBits.One;
             _port.Handshake = Handshake.None;
             _port.Parity = Parity.None;
-
-            _mode = mode;
-
             _port.Open();
-            StartupSequence(_port, _mode, buttonEvent, incomingMessage);
-
-            await Task.Delay(1);
-
-            _port.DiscardInBuffer();
-            _port.DiscardOutBuffer();
         }
 
         private void StartupSequence(SerialPort port, TransferMode mode, Action<ButtonEvent> buttonEvent, Action<string> incomingMessage)
@@ -107,7 +119,7 @@ namespace ComBridge
                     break;
             }
 
-            port.RtsEnable = true;
+            port.DtrEnable = true;
         }
 
         public void AppendLogger(Action<LogMessage> logTransfer) => _logTransfer = logTransfer;

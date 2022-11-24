@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvalApplication", "EvalAppl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComBridge", "ComBridge\ComBridge.csproj", "{D12B82B8-2545-46E3-8D76-F98B29F39CB5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvalApplication.Terminal", "EvalApplication.Terminal\EvalApplication.Terminal.csproj", "{4D3DABAC-6FEB-48AE-84C3-24B75359D770}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{D12B82B8-2545-46E3-8D76-F98B29F39CB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D12B82B8-2545-46E3-8D76-F98B29F39CB5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D12B82B8-2545-46E3-8D76-F98B29F39CB5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D3DABAC-6FEB-48AE-84C3-24B75359D770}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D3DABAC-6FEB-48AE-84C3-24B75359D770}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D3DABAC-6FEB-48AE-84C3-24B75359D770}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D3DABAC-6FEB-48AE-84C3-24B75359D770}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
