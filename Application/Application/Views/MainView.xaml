@@ -76,6 +76,20 @@
         </Grid>
 
         <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBox Grid.ColumnSpan="2"
+                     Text="{Binding ExecutionPath}"/>
+            <!--<ComboBox Grid.Row="1"
+                    Grid.Column="1" 
+                    ItemsSource="{Binding WorkLoads}"
+                    SelectedItem="{Binding WorkLoad}"/>-->
+            <!--<Button Content="SimulateWork"
+                Command="{Binding SetWorkSimulationCommand}"
+                Background="{Binding WorkSiumlation, Converter={StaticResource EnumValueToColor}}"
+                Grid.Row="1" />-->
         </Grid>
     </Grid>
 </UserControl>

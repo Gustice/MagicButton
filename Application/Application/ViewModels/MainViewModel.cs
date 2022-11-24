@@ -36,6 +36,13 @@ namespace Application.ViewModels
             set => SetProperty(ref _btnState, value);
         }
 
+        private string _executionPath;
+        public string ExecutionPath
+        {
+            get => _executionPath;
+            set => SetProperty(ref _executionPath, value);
+        }
+
         private ComButton.ButtonEvent _btnEvent;
         public ComButton.ButtonEvent BtnEvent
         {
@@ -86,9 +93,15 @@ namespace Application.ViewModels
                 BtnState = state == ComButton.ButtonEvent.Pressed ? "L->H" : "H->L";
                 BtnEvent = state;
 
+                if (state != ComButton.ButtonEvent.Released)
+                    return;
+
                 await ActiveButton.SetVisualizationState(ComButton.VisualizationSate.Busy);
-                await Task.Delay(10_000);
-                await ActiveButton.SetVisualizationState(ComButton.VisualizationSate.Good);
+                if (ExecuteCommand(ExecutionPath))
+                    await ActiveButton.SetVisualizationState(ComButton.VisualizationSate.Good);
+                else
+                    await ActiveButton.SetVisualizationState(ComButton.VisualizationSate.Fail);
+
                 await Task.Delay(5000);
                 await ActiveButton.SetVisualizationState(ComButton.VisualizationSate.Idle);
             }
@@ -97,5 +110,38 @@ namespace Application.ViewModels
                 Debug.WriteLine($"Exception: " + e.Message);
             }
         }
+
+
+        bool ExecuteCommand(string command)
+        {
+            int exitCode;
+            ProcessStartInfo processInfo;
+            Process process;
+
+            processInfo = new ProcessStartInfo("cmd.exe", "/c " + command);
+            processInfo.CreateNoWindow = true;
+            processInfo.UseShellExecute = false;
+            // *** Redirect the output ***
+            processInfo.RedirectStandardError = true;
+            processInfo.RedirectStandardOutput = true;
+
+            process = Process.Start(processInfo);
+            process.WaitForExit();
+
+            // *** Read the streams ***
+            // Warning: This approach can lead to deadlocks, see Edit #2
+            string output = process.StandardOutput.ReadToEnd();
+            string error = process.StandardError.ReadToEnd();
+
+            exitCode = process.ExitCode;
+
+            //Console.WriteLine("output>>" + (String.IsNullOrEmpty(output) ? "(none)" : output));
+            //Console.WriteLine("error>>" + (String.IsNullOrEmpty(error) ? "(none)" : error));
+            //Console.WriteLine("ExitCode: " + exitCode.ToString(), "ExecuteCommand");
+            process.Close();
+
+            return exitCode == 0;
+        }
+
     }
 }
