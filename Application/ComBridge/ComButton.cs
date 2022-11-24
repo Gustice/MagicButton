@@ -37,6 +37,7 @@ namespace ComBridge
 
         public enum ButtonEvent
         {
+            Unknown,
             Pressed,
             Released
         }

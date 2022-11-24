@@ -10,4 +10,26 @@
     <Grid>
         <ContentControl prism:RegionManager.RegionName="{x:Static defines:RegionNames.MainRegion}"/>
     </Grid>
+    <Window.Resources>
+        <Style TargetType="Grid">
+            <Setter Property="Margin"
+                Value="2" />
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Margin"
+                Value="2" />
+        </Style>
+        <Style TargetType="TextBlock">
+            <Setter Property="Margin"
+                Value="2" />
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Margin"
+                Value="2" />
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Margin"
+                Value="2" />
+        </Style>
+    </Window.Resources>
 </Window>
