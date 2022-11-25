@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO.Ports;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace ComBridge.BinaryMode
 {
@@ -18,7 +20,29 @@ namespace ComBridge.BinaryMode
             Action<LogMessage> logTransfer)
             : base(port, buttonEvent, incomingMessage, logTransfer)
         {
+            Task.Run(() => TimeOutProcess());
+        }
 
+        const int timeOutLimit = 3;
+        int timeOutCount = timeOutLimit;
+
+        async void TimeOutProcess()
+        {
+            while (true)
+            {
+                await Task.Delay(100);
+                if (timeOutCount <= 0)
+                    continue;
+
+                if (--timeOutCount <= 0)
+                {
+                    if (_buffer.Count > 0)
+                    {
+                        _buffer = new List<byte>(16);
+                        Debug.WriteLine("TimeOut-Buffer discarted");
+                    }
+                }
+            }
         }
 
         List<byte> _buffer = new List<byte>(16);
@@ -28,6 +52,8 @@ namespace ComBridge.BinaryMode
 
         public override void ProcessReceive(SerialPort port)
         {
+            timeOutCount = timeOutLimit;
+
             while (port.BytesToRead > 0)
             {
                 var b = (byte)port.ReadByte();
@@ -62,10 +88,10 @@ namespace ComBridge.BinaryMode
                 _buttonEventCb(message[3] == 'R' ? ComButton.ButtonEvent.Pressed : ComButton.ButtonEvent.Released);
                 return;
             }
+
             if (command.command == (byte)RawFrames.Commands.GetStatus)
             {
-                //_buttonEventCb(message[3].ToString());
-                _incomingMessageCb(msgString);
+                _incomingMessageCb?.Invoke(msgString);
             }
         }
     }

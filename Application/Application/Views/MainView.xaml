@@ -12,6 +12,7 @@
              d:DataContext="{d:DesignInstance viewModels:MainViewModel}"
              d:DesignHeight="100" d:DesignWidth="300">
     <UserControl.Resources>
+        <converter:InvertBoolConverter x:Key="InvertBool" />
         <converter:EnumValueToColorConverter x:Key="ConnectionToColorConverter">
             <converter:EnumValueToColorConverter.OverwriteColor>
                 <Color>DarkGray</Color>
@@ -44,8 +45,9 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <ComboBox Grid.Column="0"
-                    ItemsSource="{Binding AvailableButtons}"
-                    SelectedItem="{Binding ActiveButton}">
+                      IsEnabled="{Binding IsConnected, Converter={StaticResource InvertBool}}"
+                      ItemsSource="{Binding AvailableButtons}"
+                      SelectedItem="{Binding ActiveButton}">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="DropDownOpened">
                         <i:InvokeCommandAction Command="{Binding SetdropDownCommand}" />
@@ -82,11 +84,27 @@
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
                             <TextBlock Text="{Binding Name}" />
-                            <Button Grid.Column="2" 
-                                    Content="x" 
+                            <StackPanel Orientation="Horizontal" 
+                                        Grid.Column="1" >
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ComboBoxItem}}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+                                <Button Content="▶️"
+                                    ToolTip="Test Slot" 
+                                    Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.TestItemCommand}"
+                                    CommandParameter="{Binding}" />
+                                <Button Grid.Column="2" 
+                                    Content="❌"
                                     ToolTip="Delete Slot" 
                                     Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.DeleteItemCommand}"
                                     CommandParameter="{Binding}" />
+                            </StackPanel>
                             <TextBlock Grid.Row="1" 
                                        Grid.ColumnSpan="2" 
                                        Text="{Binding Command}" />

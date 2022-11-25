@@ -20,11 +20,19 @@ namespace Application.ViewModels
             set => SetProperty(ref _connection, value);
         }
 
+        private bool _isConnected;
+        public bool IsConnected
+        {
+            get => _isConnected;
+            set => SetProperty(ref _isConnected, value);
+        }
+
         public DelegateCommandBase ConnectCommand { get; }
         bool CanConnect() => ActiveButton != null && Connection == ConnectionState.Initial;
         public DelegateCommandBase SetdropDownCommand { get; }
         public DelegateCommandBase AddNewActionCommand { get; }
         public DelegateCommand<ButtonAction> DeleteItemCommand { get; }
+        public DelegateCommand<ButtonAction> TestItemCommand { get; }
 
         private ComButton _activeButton;
         public ComButton ActiveButton
@@ -77,6 +85,7 @@ namespace Application.ViewModels
             SetdropDownCommand = new DelegateCommand(OnSetdropDown);
             AddNewActionCommand = new DelegateCommand(OnAddNewAction);
             DeleteItemCommand = new DelegateCommand<ButtonAction>(OnDeleteAction);
+            TestItemCommand = new DelegateCommand<ButtonAction>(OnTestItem);
 
             Actions.Add(new ButtonAction() { Name = "Lock Screen", Command = "Rundll32.exe user32.dll,LockWorkStation" });
             Actions.Add(new ButtonAction() { Name = "Open Google", Command = "explorer \"https://google.com\"" });
@@ -94,6 +103,11 @@ namespace Application.ViewModels
             Actions.Remove(obj);
         }
 
+        private void OnTestItem(ButtonAction obj)
+        {
+            ExecuteCommand(obj.Command);
+        }
+
         private void OnSetdropDown()
         {
             Debug.WriteLine("-- OnSetdropDown");
@@ -107,8 +121,10 @@ namespace Application.ViewModels
             Debug.WriteLine("-- OnConnect");
             try
             {
-                await ActiveButton.Connect(UpdateButtonState, UpdateStatusMessage, ComButton.TransferMode.Binary);
+                ActiveButton.AppendLogger(OnLog);
+                await ActiveButton.Connect(UpdateButtonState, null, ComButton.TransferMode.Binary);
                 Connection = ConnectionState.Connected;
+                IsConnected = true;
             }
             catch (Exception e)
             {
@@ -117,9 +133,9 @@ namespace Application.ViewModels
             }
         }
 
-        private void UpdateStatusMessage(string state)
+        private void OnLog(LogMessage obj)
         {
-
+            Console.WriteLine(obj.Message);
         }
 
         bool isRunning;
@@ -142,6 +158,18 @@ namespace Application.ViewModels
                 var token = ctSource.Token;
                 
                 await ActiveButton.SetVisualizationState(ComButton.VisualizationSate.Busy);
+
+                var cmd = Action?.Command;
+                if (!string.IsNullOrEmpty(NewAction.Command))
+                    cmd = NewAction.Command;
+
+                if (string.IsNullOrEmpty(cmd))
+                {
+                    isRunning = false;
+                    await ActiveButton.SetVisualizationState(ComButton.VisualizationSate.Idle);
+                    return;
+                }
+
                 if (ExecuteCommand(Action.Command))
                     await ActiveButton.SetVisualizationState(ComButton.VisualizationSate.Good);
                 else

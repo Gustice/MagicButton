@@ -57,6 +57,7 @@
     </ApplicationDefinition>
     <Compile Include="Converter\BoolToColorConverter.cs" />
     <Compile Include="Converter\EnumValueToColorConverter.cs" />
+    <Compile Include="Converter\InvertBoolConverter.cs" />
     <Compile Include="Defines\ConnectionState.cs" />
     <Compile Include="Models\ButtonAction.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />

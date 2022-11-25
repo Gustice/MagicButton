@@ -70,7 +70,7 @@ namespace ComBridge.AsciiMode
                 var sStr = message.Substring("<State:".Length);
                 var fields = sStr.Split(';');
                 //_buttonEventCb(fields[0]);
-                _incomingMessageCb(message /*new ButtonEvent(ButtonEvent.EventType.Response, stream)*/);
+                _incomingMessageCb?.Invoke(message);
             }
         }
     }
