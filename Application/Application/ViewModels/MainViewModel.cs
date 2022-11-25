@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System;
 using Application.Models;
+using System.Threading;
 
 namespace Application.ViewModels
 {
@@ -79,6 +80,7 @@ namespace Application.ViewModels
 
             Actions.Add(new ButtonAction() { Name = "Lock Screen", Command = "Rundll32.exe user32.dll,LockWorkStation" });
             Actions.Add(new ButtonAction() { Name = "Open Google", Command = "explorer \"https://google.com\"" });
+            Actions.Add(new ButtonAction() { Name = "Demo Bat", Command = @"Resources\DemoProcess.bat" });
         }
 
         private void OnAddNewAction()
@@ -120,6 +122,8 @@ namespace Application.ViewModels
 
         }
 
+        bool isRunning;
+        CancellationTokenSource ctSource = new CancellationTokenSource();
         private async void UpdateButtonState(ComButton.ButtonEvent state)
         {
             try
@@ -129,19 +133,30 @@ namespace Application.ViewModels
 
                 if (state != ComButton.ButtonEvent.Released)
                     return;
+                if (isRunning)
+                    return;
 
+                isRunning = true;
+                ctSource.Cancel();
+                ctSource = new CancellationTokenSource();
+                var token = ctSource.Token;
+                
                 await ActiveButton.SetVisualizationState(ComButton.VisualizationSate.Busy);
                 if (ExecuteCommand(Action.Command))
                     await ActiveButton.SetVisualizationState(ComButton.VisualizationSate.Good);
                 else
                     await ActiveButton.SetVisualizationState(ComButton.VisualizationSate.Fail);
 
-                await Task.Delay(5000);
+                isRunning = false;
+                await Task.Delay(5000,token);
+
                 await ActiveButton.SetVisualizationState(ComButton.VisualizationSate.Idle);
+                
             }
             catch (Exception e)
             {
                 Debug.WriteLine($"Exception: " + e.Message);
+                isRunning = false;
             }
         }
 

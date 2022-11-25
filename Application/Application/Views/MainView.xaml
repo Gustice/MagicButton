@@ -10,7 +10,7 @@
              xmlns:viewModels="clr-namespace:Application.ViewModels" xmlns:elements="clr-namespace:Application.Views.Elements"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance viewModels:MainViewModel}"
-             d:DesignHeight="150" d:DesignWidth="300">
+             d:DesignHeight="100" d:DesignWidth="300">
     <UserControl.Resources>
         <converter:EnumValueToColorConverter x:Key="ConnectionToColorConverter">
             <converter:EnumValueToColorConverter.OverwriteColor>

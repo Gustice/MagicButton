@@ -92,8 +92,8 @@ const Macro macStdPulseAll = {
     {32, 0, StateMachine::UpdateIdleAll, 0, oldColor},
 };
 
-const Macro macStdRotate = {
-    {32, 0, &OffsetPulseWave, StateMachine::UpdateRotateWaveAll, 0xFF, oldColor},
+const Macro macStdRotate = { q
+    {32, 0, &FullPulseWave, StateMachine::UpdateRotateWaveAll, 0xFF, oldColor},
 };
 
 const Macro macNervousPulseAll = {
