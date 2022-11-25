@@ -6,6 +6,7 @@ using ComBridge;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System;
+using Application.Models;
 
 namespace Application.ViewModels
 {
@@ -21,6 +22,8 @@ namespace Application.ViewModels
         public DelegateCommandBase ConnectCommand { get; }
         bool CanConnect() => ActiveButton != null && Connection == ConnectionState.Initial;
         public DelegateCommandBase SetdropDownCommand { get; }
+        public DelegateCommandBase AddNewActionCommand { get; }
+        public DelegateCommand<ButtonAction> DeleteItemCommand { get; }
 
         private ComButton _activeButton;
         public ComButton ActiveButton
@@ -29,7 +32,7 @@ namespace Application.ViewModels
             set => SetProperty(ref _activeButton, value);
         }
 
-        private string _btnState;
+        private string _btnState = "▫️";
         public string BtnState
         {
             get => _btnState;
@@ -50,12 +53,43 @@ namespace Application.ViewModels
             set => SetProperty(ref _btnEvent, value);
         }
 
+        private ButtonAction _action;
+        public ButtonAction Action
+        {
+            get => _action;
+            set => SetProperty(ref _action, value);
+        }
+
+        private ButtonAction _newAction = new ButtonAction();
+        public ButtonAction NewAction
+        {
+            get => _newAction;
+            set => SetProperty(ref _newAction, value);
+        }
+
         public ObservableCollection<ComButton> AvailableButtons { get; } = new ObservableCollection<ComButton>();
+        public ObservableCollection<ButtonAction> Actions { get; } = new ObservableCollection<ButtonAction>();
 
         public MainViewModel()
         {
             ConnectCommand = new DelegateCommand(OnConnect, CanConnect).ObservesProperty(() => ActiveButton);
             SetdropDownCommand = new DelegateCommand(OnSetdropDown);
+            AddNewActionCommand = new DelegateCommand(OnAddNewAction);
+            DeleteItemCommand = new DelegateCommand<ButtonAction>(OnDeleteAction);
+
+            Actions.Add(new ButtonAction() { Name = "Lock Screen", Command = "Rundll32.exe user32.dll,LockWorkStation" });
+            Actions.Add(new ButtonAction() { Name = "Open Google", Command = "explorer \"https://google.com\"" });
+        }
+
+        private void OnAddNewAction()
+        {
+            Actions.Add(NewAction);
+            NewAction = new ButtonAction();
+        }
+
+        private void OnDeleteAction(ButtonAction obj)
+        {
+            Actions.Remove(obj);
         }
 
         private void OnSetdropDown()
@@ -90,14 +124,14 @@ namespace Application.ViewModels
         {
             try
             {
-                BtnState = state == ComButton.ButtonEvent.Pressed ? "L->H" : "H->L";
+                BtnState = state == ComButton.ButtonEvent.Pressed ? "🔘" : "⚪";
                 BtnEvent = state;
 
                 if (state != ComButton.ButtonEvent.Released)
                     return;
 
                 await ActiveButton.SetVisualizationState(ComButton.VisualizationSate.Busy);
-                if (ExecuteCommand(ExecutionPath))
+                if (ExecuteCommand(Action.Command))
                     await ActiveButton.SetVisualizationState(ComButton.VisualizationSate.Good);
                 else
                     await ActiveButton.SetVisualizationState(ComButton.VisualizationSate.Fail);
@@ -111,7 +145,6 @@ namespace Application.ViewModels
             }
         }
 
-
         bool ExecuteCommand(string command)
         {
             int exitCode;
@@ -121,23 +154,22 @@ namespace Application.ViewModels
             processInfo = new ProcessStartInfo("cmd.exe", "/c " + command);
             processInfo.CreateNoWindow = true;
             processInfo.UseShellExecute = false;
-            // *** Redirect the output ***
+            // Redirect the output
             processInfo.RedirectStandardError = true;
             processInfo.RedirectStandardOutput = true;
 
             process = Process.Start(processInfo);
             process.WaitForExit();
 
-            // *** Read the streams ***
-            // Warning: This approach can lead to deadlocks, see Edit #2
+            // Read the streams
+            // Warning: This approach can lead to deadlocks
             string output = process.StandardOutput.ReadToEnd();
             string error = process.StandardError.ReadToEnd();
-
             exitCode = process.ExitCode;
 
-            //Console.WriteLine("output>>" + (String.IsNullOrEmpty(output) ? "(none)" : output));
-            //Console.WriteLine("error>>" + (String.IsNullOrEmpty(error) ? "(none)" : error));
-            //Console.WriteLine("ExitCode: " + exitCode.ToString(), "ExecuteCommand");
+            Debug.WriteLine("output>>" + (String.IsNullOrEmpty(output) ? "(none)" : output));
+            Debug.WriteLine("error>>" + (String.IsNullOrEmpty(error) ? "(none)" : error));
+            Debug.WriteLine("ExitCode: " + exitCode.ToString(), "ExecuteCommand");
             process.Close();
 
             return exitCode == 0;

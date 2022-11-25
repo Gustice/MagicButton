@@ -7,7 +7,7 @@
              xmlns:converter="clr-namespace:Application.Converter"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              prism:ViewModelLocator.AutoWireViewModel="True"
-             xmlns:viewModels="clr-namespace:Application.ViewModels"
+             xmlns:viewModels="clr-namespace:Application.ViewModels" xmlns:elements="clr-namespace:Application.Views.Elements"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance viewModels:MainViewModel}"
              d:DesignHeight="150" d:DesignWidth="300">
@@ -40,56 +40,89 @@
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <ComboBox Grid.Column="0"
                     ItemsSource="{Binding AvailableButtons}"
                     SelectedItem="{Binding ActiveButton}">
                 <i:Interaction.Triggers>
-                    <i:EventTrigger EventName="DropDownOpened"
-                                SourceObject="{Binding ElementName=ServersBox}">
+                    <i:EventTrigger EventName="DropDownOpened">
                         <i:InvokeCommandAction Command="{Binding SetdropDownCommand}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
-
-
             </ComboBox>
             <Button Content="Connect"
+                    Padding="4,0"
                 Grid.Column="1"
                 Background="{Binding Connection, 
                     Converter={StaticResource ConnectionToColorConverter}}"
                 Command="{Binding ConnectCommand}" />
+            <TextBox Grid.Column="2" 
+                     Width="30"
+                     TextAlignment="Center"
+                     Text="{Binding BtnState}" 
+                     Background="{Binding BtnEvent, 
+                         Converter={StaticResource PressedToColorConverter}}"/>
         </Grid>
 
         <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <TextBlock Text="State"
-                    Grid.Row="1" />
-            <TextBox Grid.Row="1"
-                    Grid.Column="1"
-                    Text="{Binding BtnState}" 
-                    Background="{Binding BtnEvent, 
-                        Converter={StaticResource PressedToColorConverter}}"/>
+            <ComboBox ItemsSource="{Binding Actions}" 
+                      SelectedItem="{Binding Action}" 
+                      HorizontalContentAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="{Binding Name}" />
+                            <Button Grid.Column="2" 
+                                    Content="x" 
+                                    ToolTip="Delete Slot" 
+                                    Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.DeleteItemCommand}"
+                                    CommandParameter="{Binding}" />
+                            <TextBlock Grid.Row="1" 
+                                       Grid.ColumnSpan="2" 
+                                       Text="{Binding Command}" />
+                        </Grid>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
         </Grid>
 
-        <Grid Grid.Row="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <TextBox Grid.ColumnSpan="2"
-                     Text="{Binding ExecutionPath}"/>
-            <!--<ComboBox Grid.Row="1"
-                    Grid.Column="1" 
-                    ItemsSource="{Binding WorkLoads}"
-                    SelectedItem="{Binding WorkLoad}"/>-->
-            <!--<Button Content="SimulateWork"
-                Command="{Binding SetWorkSimulationCommand}"
-                Background="{Binding WorkSiumlation, Converter={StaticResource EnumValueToColor}}"
-                Grid.Row="1" />-->
-        </Grid>
+        <GroupBox Grid.Row="2" 
+                  Header="New Command">
+            <Grid >
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <elements:InputControl InputText="{Binding NewAction.Name, Mode=TwoWay}"
+                                   ReadOnly="False" 
+                                   WatermarkText="CommandName" 
+                                   ToolTip="Name of command" />
+                    <elements:InputControl Grid.Row="1" 
+                                   Grid.ColumnSpan="2" 
+                                   InputText="{Binding NewAction.Command, Mode=TwoWay}" 
+                                   ReadOnly="False" 
+                                   WatermarkText="Command / Path / Args" 
+                                   ToolTip="Command like it would be typed into terminal" />
+                </Grid>
+                <Button Grid.Column="1" 
+                    Content="Add"
+                    Command="{Binding AddNewActionCommand}"/>
+            </Grid>
+        </GroupBox>
     </Grid>
 </UserControl>
