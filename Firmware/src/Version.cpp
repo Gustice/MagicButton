@@ -1,2 +1,2 @@
-const char * VersionString = "V0.5";
+const char * VersionString = "V0.8";
 const char * DeviceString = "MagicButton";
