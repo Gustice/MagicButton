@@ -4,6 +4,7 @@ using System.IO.Ports;
 using System.Linq;
 using System.Management;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ComBridge
@@ -120,6 +121,7 @@ namespace ComBridge
                     break;
             }
 
+            Thread.Sleep(300);
             port.DtrEnable = true;
         }
 

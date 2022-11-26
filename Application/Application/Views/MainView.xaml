@@ -10,7 +10,7 @@
              xmlns:viewModels="clr-namespace:Application.ViewModels" xmlns:elements="clr-namespace:Application.Views.Elements"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance viewModels:MainViewModel}"
-             d:DesignHeight="150" d:DesignWidth="300">
+             d:DesignHeight="200" d:DesignWidth="300">
     <UserControl.Resources>
         <converter:InvertBoolConverter x:Key="InvertBool" />
         <converter:EnumValueToColorConverter x:Key="ConnectionToColorConverter">
@@ -34,9 +34,9 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0">
@@ -139,8 +139,8 @@
                                    ToolTip="Command like it would be typed into terminal" />
                 </Grid>
                 <Button Grid.Column="1" 
-                    Content="Add"
-                    Command="{Binding AddNewActionCommand}"/>
+                        Content="➕"
+                        Command="{Binding AddNewActionCommand}"/>
             </Grid>
         </GroupBox>
 
@@ -148,6 +148,7 @@
                     HorizontalAlignment="Right"
                     Grid.Row="3">
             <Button Content="💾" 
+                    Height="30"
                     Command="{Binding SaveCommand}" />
         </StackPanel>
     </Grid>
