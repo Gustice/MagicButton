@@ -1,8 +1,8 @@
 #pragma once
 
-class CntDown {
+class CountDown {
   public:
-    CntDown(unsigned max) : _max(max) {}
+    CountDown(unsigned max) : _max(max) {}
 
     void Tick() {
         _cnt++;
@@ -16,7 +16,9 @@ class CntDown {
         if (!_pFlag)
             return false;
 
-        _pFlag = false;
+        // Reset _pFlag in any case, so it only be consumed once
+        //  hence volatile
+        _pFlag = false; 
         return true;
     }
 

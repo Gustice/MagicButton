@@ -1,0 +1,190 @@
+﻿<UserControl x:Class="EvalApplication.Ux.Views.DeviceControlView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:viewmodels="clr-namespace:EvalApplication.Ux.ViewModels"
+             xmlns:converter="clr-namespace:EvalApplication.Ux.Converter"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance viewmodels:DeviceControlViewModel, IsDesignTimeCreatable=True}"
+             d:DesignHeight="300"
+             d:DesignWidth="250">
+    <UserControl.Resources>
+        <converter:EnumValueToColorConverter x:Key="BinaryStateToColor">
+            <converter:EnumValueToColorConverter.OverwriteColor>
+                <Color>LightGray</Color>
+                <Color>YellowGreen</Color>
+            </converter:EnumValueToColorConverter.OverwriteColor>
+        </converter:EnumValueToColorConverter>
+        <converter:EnumValueToColorConverter x:Key="EnumValueToColor" />
+        <converter:HexByteConverter x:Key="HexByte" />
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <ComboBox Grid.Column="0"
+                      ItemsSource="{Binding AvailableButtons}"
+                      SelectedItem="{Binding ActiveButton}">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="DropDownOpened">
+                        <i:InvokeCommandAction Command="{Binding SetdropDownCommand}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </ComboBox>
+            <Button Grid.Column="1" 
+                    Content="Hex"
+                    Command="{Binding ToHexModeCommand}"
+                    Background="{Binding TransferMode, 
+                        Converter={StaticResource BinaryStateToColor}}"
+                    ToolTip="Will latch to hex mode"/>
+            <Button Grid.Column="2" 
+                    Content="{Binding ConnectAction, FallbackValue=Connect}"
+                    Background="{Binding Connection, Converter={StaticResource EnumValueToColor}}"
+                    Command="{Binding ConnectCommand}" />
+        </Grid>
+
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Button Content="->Idle"
+                    Grid.Row="1"
+                    Command="{Binding SetStateCommand}"
+                    CommandParameter="Idle" />
+            <Button Content="->Busy"
+                    Grid.Row="2"
+                    Command="{Binding SetStateCommand}"
+                    CommandParameter="Busy" />
+            <Button Content="->Good"
+                    Grid.Row="3"
+                    Command="{Binding SetStateCommand}"
+                    CommandParameter="Good" />
+            <Button Content="->Fail"
+                    Grid.Row="4"
+                    Command="{Binding SetStateCommand}"
+                    CommandParameter="Fail" />
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Button Content="Color"
+                    Grid.Row="1"
+                    Command="{Binding SetColorCommand}" />
+            <StackPanel Orientation="Horizontal"
+                        Grid.Row="1"
+                        Grid.Column="1">
+                <TextBlock Text="0x" />
+                <TextBox Text="{Binding SetColor.Red, Converter={StaticResource HexByte}}"
+                         BorderBrush="Red" />
+                <TextBox Text="{Binding SetColor.Green, Converter={StaticResource HexByte}}"
+                         BorderBrush="Green" />
+                <TextBox Text="{Binding SetColor.Blue, Converter={StaticResource HexByte}}"
+                         BorderBrush="Blue" />
+                <TextBox Text="{Binding SetColor.White, Converter={StaticResource HexByte}}"
+                         BorderBrush="Gray" />
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="3">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Button Content="Read"
+                    Grid.Row="1"
+                    Command="{Binding ReadStateCommand}" />
+            <TextBox Grid.Row="1"
+                     Text="{Binding State}"
+                     Grid.Column="1" />
+        </Grid>
+
+        <Grid Grid.Row="4">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="State"
+                       Grid.Row="1" />
+            <TextBox Grid.Row="1"
+                     Grid.Column="1"
+                     Text="{Binding BtnState}" />
+        </Grid>
+
+        <Grid Grid.Row="5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Button Content="SimulateWork"
+                    Command="{Binding SetWorkSimulationCommand}"
+                    Background="{Binding WorkSiumlation, Converter={StaticResource EnumValueToColor}}"
+                    Grid.Row="1" />
+            <ComboBox Grid.Row="1"
+                      Grid.Column="1" 
+                      ItemsSource="{Binding WorkLoads}"
+                      SelectedItem="{Binding WorkLoad}"/>
+            <Viewbox Grid.Row="2"
+                     Grid.ColumnSpan="2"
+                     Height="20"
+                     HorizontalAlignment="Stretch"
+                     VerticalAlignment="Stretch">
+                <Canvas Width="100"
+                        Height="6">
+                    <Rectangle Height="4"
+                               Width="100" />
+                    <Rectangle Height="4"
+                               Fill="Blue"
+                               Width="{Binding ProgressPercent}" />
+                </Canvas>
+            </Viewbox>
+        </Grid>
+    </Grid>
+
+</UserControl>
