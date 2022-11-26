@@ -27,12 +27,13 @@ namespace EvalApplication.Ux.ViewModels
         public DelegateCommandBase SetWorkSimulationCommand { get; }
 
         private ConnectionState _connection;
-        private Activation _workSiumlation;
         public ConnectionState Connection
         {
             get => _connection;
             set => SetProperty(ref _connection, value);
         }
+
+        private Activation _workSiumlation;
         public Activation WorkSiumlation
         {
             get => _workSiumlation;
@@ -159,8 +160,8 @@ namespace EvalApplication.Ux.ViewModels
             {
 
             }
-
         }
+
         private void UpdateStatusMessage(string state)
         {
             State = state;
