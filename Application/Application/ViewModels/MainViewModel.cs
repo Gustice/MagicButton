@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System;
 using Application.Models;
 using System.Threading;
+using Application.Repos;
 
 namespace Application.ViewModels
 {
@@ -31,6 +32,7 @@ namespace Application.ViewModels
         bool CanConnect() => ActiveButton != null && Connection == ConnectionState.Initial;
         public DelegateCommandBase SetdropDownCommand { get; }
         public DelegateCommandBase AddNewActionCommand { get; }
+        public DelegateCommandBase SaveCommand { get; }
         public DelegateCommand<ButtonAction> DeleteItemCommand { get; }
         public DelegateCommand<ButtonAction> TestItemCommand { get; }
 
@@ -79,17 +81,22 @@ namespace Application.ViewModels
         public ObservableCollection<ComButton> AvailableButtons { get; } = new ObservableCollection<ComButton>();
         public ObservableCollection<ButtonAction> Actions { get; } = new ObservableCollection<ButtonAction>();
 
-        public MainViewModel()
+        public MainViewModel(ButtonActionRepo repo)
         {
             ConnectCommand = new DelegateCommand(OnConnect, CanConnect).ObservesProperty(() => ActiveButton);
             SetdropDownCommand = new DelegateCommand(OnSetdropDown);
             AddNewActionCommand = new DelegateCommand(OnAddNewAction);
+            SaveCommand = new DelegateCommand(OnSave);
             DeleteItemCommand = new DelegateCommand<ButtonAction>(OnDeleteAction);
             TestItemCommand = new DelegateCommand<ButtonAction>(OnTestItem);
 
-            Actions.Add(new ButtonAction() { Name = "Lock Screen", Command = "Rundll32.exe user32.dll,LockWorkStation" });
-            Actions.Add(new ButtonAction() { Name = "Open Google", Command = "explorer \"https://google.com\"" });
-            Actions.Add(new ButtonAction() { Name = "Demo Bat", Command = @"Resources\DemoProcess.bat" });
+            Actions.AddRange(repo.GetActions());
+            _repo = repo;
+        }
+
+        private void OnSave()
+        {
+            _repo.Save(Actions);
         }
 
         private void OnAddNewAction()
@@ -140,6 +147,8 @@ namespace Application.ViewModels
 
         bool isRunning;
         CancellationTokenSource ctSource = new CancellationTokenSource();
+        private readonly ButtonActionRepo _repo;
+
         private async void UpdateButtonState(ComButton.ButtonEvent state)
         {
             try

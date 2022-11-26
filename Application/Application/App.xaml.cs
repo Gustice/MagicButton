@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using Application.Defines;
+using Application.Repos;
 using Application.Views;
 using Prism.Ioc;
 using Prism.Regions;
@@ -14,7 +15,7 @@ namespace Application
         /// <inheritdoc /> // 2. This will be called second
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
-            //containerRegistry.RegisterSingleton<ISomeInterface, SomeImplementation>();
+            containerRegistry.RegisterSingleton<ButtonActionRepo>();
         }
 
         /// <inheritdoc /> // 3. This will be called third

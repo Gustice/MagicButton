@@ -6,7 +6,7 @@
         xmlns:prism="http://prismlibrary.com/"
         xmlns:defines="clr-namespace:Application.Defines"
         mc:Ignorable="d"
-        Title="MainWindow" Height="200" Width="300">
+        Title="MainWindow" Height="220" Width="300">
     <Grid>
         <ContentControl prism:RegionManager.RegionName="{x:Static defines:RegionNames.MainRegion}"/>
     </Grid>

@@ -60,6 +60,7 @@
     <Compile Include="Converter\InvertBoolConverter.cs" />
     <Compile Include="Defines\ConnectionState.cs" />
     <Compile Include="Models\ButtonAction.cs" />
+    <Compile Include="Repos\ButtonActionRepo.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="Views\Elements\InputControl.xaml.cs">
       <DependentUpon>InputControl.xaml</DependentUpon>
@@ -119,6 +120,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>13.0.2</Version>
+    </PackageReference>
     <PackageReference Include="Prism.Unity">
       <Version>8.1.97</Version>
     </PackageReference>
