@@ -14,6 +14,7 @@ using namespace Effect;
 constexpr int LedOutputPin = PB8;
 constexpr int ButtonPin = PB9;
 constexpr int DebugPin = PB12;
+constexpr int BuildInLed = PC13;
 constexpr unsigned HwTimerInterval_us(1 * 1000);
 constexpr unsigned PixelCount = 16;
 
@@ -22,12 +23,13 @@ int readButtonPin(void);
 void SetColor(const Color &color);
 void SetScene(VisualizationSate scene);
 void setDebugPin(int value);
+void setBuildInLed(int value);
 void cyclicInterruptRoutine(void);
 
 STM32Timer _iTimer(TIM1);
 static Button _button(readButtonPin, HIGH);
-static CountDown _ledTick(40 /* ms*/);
-static CountDown _buttonTick(20 /* ms*/);
+static CountDown _ledTick(20 /* ms*/);
+static CountDown _buttonTick(10 /* ms*/);
 MultiProcessor<PixelCount> _pixelRing(8);
 Adafruit_NeoPixel _strip(PixelCount, LedOutputPin, NEO_GRBW + NEO_KHZ800);
 DeviceState _device{
@@ -37,8 +39,10 @@ DeviceState _device{
 Shell _shell(SerialUSB, _device, SetColor, SetScene);
 
 void setup() {
-    pinMode(PC13, OUTPUT);
+    pinMode(DebugPin, OUTPUT);
+    pinMode(BuildInLed, OUTPUT);
     pinMode(LedOutputPin, OUTPUT);
+    setBuildInLed(HIGH);
 
     SerialUSB.begin();
     _shell.PrintEvent("Setup is finished");
@@ -47,6 +51,7 @@ void setup() {
         _shell.PrintError("Can't set ITimer. Select another freq. or timer");
 
     _pixelRing.SetEffect(macStartIdleAll, &CWhite);
+    _pixelRing.SetEffect(macStartIdleAll, &CWhite); // To override some bug in the lib (to be found)
 }
 
 void loop() {
@@ -59,21 +64,25 @@ void loop() {
             _pixelRing.SetEffect(scn.Effect, &scn.color);
         }
     } else {
-        // if (state != DeviceState::Startup) { // @todo USB not working if this is uncommented
-        _device.Visualization = VisualizationSate::Startup;
-        _pixelRing.SetEffect(macStartIdleAll, &CWhite);
-        // }
+        if (_device.Visualization != VisualizationSate::Startup) { // @todo USB not working if this is uncommented
+            _device.Visualization = VisualizationSate::Startup;
+            _pixelRing.SetEffect(macIdleAll, &CWhite);
+        }
 
         if (SerialUSB.available()) {
             if (SerialUSB.peek() == Shell::EscapeChar)
                 _shell.ConsumeSymbol(SerialUSB.read());
-                // @todo shall we discard incoming characters in this case?
+            // @todo shall we discard incoming characters in this case?
         }
     }
 
     if (SerialUSB) {
         if (SerialUSB.available()) {
-            _shell.ConsumeSymbol(SerialUSB.read());
+            setBuildInLed(LOW);
+            while (SerialUSB.available()) {
+                _shell.ConsumeSymbol(SerialUSB.read());
+            }
+            setBuildInLed(HIGH);
         }
     }
 
@@ -81,12 +90,16 @@ void loop() {
         _device.ButtonState = _button.Eval();
         switch (_device.ButtonState) {
         case Button::State::Pressed:
+            setBuildInLed(LOW);
             _shell.SendButtonEvent(Button::State::Pressed);
+            setBuildInLed(HIGH);
             pColorOverride = &COrange;
             break;
 
         case Button::State::Released:
+            setBuildInLed(LOW);
             _shell.SendButtonEvent(Button::State::Released);
+            setBuildInLed(HIGH);
             pColorOverride = nullptr;
             break;
 
@@ -132,3 +145,4 @@ void cyclicInterruptRoutine(void) {
 
 int readButtonPin(void) { return digitalRead(ButtonPin); }
 void setDebugPin(int value) { digitalWrite(DebugPin, value); }
+void setBuildInLed(int value) { digitalWrite(BuildInLed, value); }

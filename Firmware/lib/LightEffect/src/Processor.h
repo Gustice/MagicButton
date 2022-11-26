@@ -126,7 +126,7 @@ template <unsigned LedCnt = 1> class MultiProcessor {
 
         _EffPV = &_effPV1;
         _EffPV_old = &_effPV2;
-        _EffPV->SetEffect(macDark, noColor);
+        _EffPV->SetEffect(macDark, &CBlack);
         _fadeSteps = fadeSteps;
     }
 
