@@ -23,7 +23,6 @@
         </converter:EnumValueToColorConverter>
         <converter:EnumValueToColorConverter x:Key="PressedToColorConverter">
             <converter:EnumValueToColorConverter.OverwriteColor>
-                <Color>LightGray</Color>
                 <Color>LightGreen</Color>
                 <Color>LightSalmon</Color>
             </converter:EnumValueToColorConverter.OverwriteColor>

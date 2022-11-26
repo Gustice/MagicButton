@@ -11,6 +11,12 @@
              d:DesignHeight="300"
              d:DesignWidth="250">
     <UserControl.Resources>
+        <converter:EnumValueToColorConverter x:Key="BinaryStateToColor">
+            <converter:EnumValueToColorConverter.OverwriteColor>
+                <Color>LightGray</Color>
+                <Color>YellowGreen</Color>
+            </converter:EnumValueToColorConverter.OverwriteColor>
+        </converter:EnumValueToColorConverter>
         <converter:EnumValueToColorConverter x:Key="EnumValueToColor" />
         <converter:HexByteConverter x:Key="HexByte" />
     </UserControl.Resources>
@@ -27,23 +33,27 @@
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <ComboBox Grid.Column="0"
                       ItemsSource="{Binding AvailableButtons}"
                       SelectedItem="{Binding ActiveButton}">
                 <i:Interaction.Triggers>
-                    <i:EventTrigger EventName="DropDownOpened"
-                                    SourceObject="{Binding ElementName=ServersBox}">
+                    <i:EventTrigger EventName="DropDownOpened">
                         <i:InvokeCommandAction Command="{Binding SetdropDownCommand}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
-
-
             </ComboBox>
-            <Button Content="Connect"
+            <Button Grid.Column="1" 
+                    Content="Hex"
+                    Command="{Binding ToHexModeCommand}"
+                    Background="{Binding TransferMode, 
+                        Converter={StaticResource BinaryStateToColor}}"
+                    ToolTip="Will latch to hex mode"/>
+            <Button Grid.Column="2" 
+                    Content="{Binding ConnectAction, FallbackValue=Connect}"
                     Background="{Binding Connection, Converter={StaticResource EnumValueToColor}}"
-                    Grid.Column="1"
                     Command="{Binding ConnectCommand}" />
         </Grid>
 

@@ -174,12 +174,12 @@ namespace Application.ViewModels
 
                 if (string.IsNullOrEmpty(cmd))
                 {
-                    isRunning = false;
                     await ActiveButton.SetVisualizationState(ComButton.VisualizationSate.Idle);
+                    isRunning = false;
                     return;
                 }
 
-                if (ExecuteCommand(Action.Command))
+                if (ExecuteCommand(cmd))
                     await ActiveButton.SetVisualizationState(ComButton.VisualizationSate.Good);
                 else
                     await ActiveButton.SetVisualizationState(ComButton.VisualizationSate.Fail);

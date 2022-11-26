@@ -10,7 +10,6 @@
              d:DesignHeight="300"
              d:DesignWidth="200">
     <UserControl.Resources>
-        <converter:BoolToColorConverter x:Key="BoolToColor" IfFalse="LightGray" IfTrue="YellowGreen" />
         <converter:EnumValueToColorConverter x:Key="BackgroundConverter">
             <converter:EnumValueToColorConverter.OverwriteColor>
                 <Color>DarkGreen</Color>
@@ -35,14 +34,10 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <Button Content="Hex"
-                    Command="{Binding ToHexModeCommand}"
-                    Background="{Binding HexModeIsActive, 
-                        Converter={StaticResource BoolToColor}}"
-                    ToolTip="Will latch to hex mode" />
-            <Button Content="Clear"
-                    Command="{Binding ClearCommand}"
-                    Grid.Column="2" />
+            <Button Grid.Column="2" 
+                    Content="❌"
+                    ToolTip="Clear buffer"
+                    Command="{Binding ClearCommand}"/>
         </Grid>
 
         <ScrollViewer Grid.Row="1">

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO.Ports;
+using System.Text;
 using System.Threading.Tasks;
 using static ComBridge.ComButton;
 
@@ -15,17 +16,37 @@ namespace ComBridge.BinaryMode
 
         public override async Task ReadStates()
         {
-            await WriteAsync(new byte[] { 0x04, 0x00, 0x00 });
+            var msg = new byte[] { 0x04, 0x00, 0x00 };
+            _logTransfer?.Invoke(new LogMessage(LogTopic.Request, CreateLogStream(msg)));
+
+            await WriteAsync(msg);
         }
 
         public override async Task SetColor(Color color)
         {
-            await WriteAsync(new byte[] { 0x02, 0x00, 0x04, color.Red, color.Green, color.Blue, color.White });
+            var msg = new byte[] { 0x02, 0x00, 0x04, color.Red, color.Green, color.Blue, color.White };
+            _logTransfer?.Invoke(new LogMessage(LogTopic.Request, CreateLogStream(msg)));
+
+            await WriteAsync(msg);
         }
 
         public override async Task SetVisualizationState(VisualizationSate state)
         {
-            await WriteAsync(new byte[] { 0x03, 0x00, 0x01, (byte)state });
+            var msg = new byte[] { 0x03, 0x00, 0x01, (byte)state };
+            _logTransfer?.Invoke(new LogMessage(LogTopic.Request, CreateLogStream(msg)));
+
+            await WriteAsync(msg);
+        }
+
+        private string CreateLogStream(byte[] message)
+        {
+            var sb = new StringBuilder(message.Length * 4 + 4);
+            sb.Append("x0 ");
+            foreach (byte b in message)
+                sb.Append($"{b:X2}, ");
+            var msgString = sb.ToString().TrimEnd(new char[] { ' ', ',' });
+
+            return msgString;
         }
     }
 }

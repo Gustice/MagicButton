@@ -1,7 +1,6 @@
 ﻿using ComBridge;
 using Prism.Commands;
 using Prism.Mvvm;
-using System;
 using System.Collections.ObjectModel;
 using System.Windows.Threading;
 
@@ -11,11 +10,8 @@ namespace EvalApplication.Ux.ViewModels
     {
         public ObservableCollection<LogMessage> Items { get; } = new ObservableCollection<LogMessage>();
         public DelegateCommandBase ClearCommand { get; }
-        public DelegateCommandBase ToHexModeCommand { get; }
 
         private Dispatcher _dispatcher;
-        private Action<ComButton.TransferMode> _newModeCallback;
-        public bool HexModeIsActive => _transferMode == ComButton.TransferMode.Binary;
         
         public LogControlViewModel()
         {
@@ -26,23 +22,10 @@ namespace EvalApplication.Ux.ViewModels
             Items.Add(new LogMessage(LogTopic.Request, "Some Event"));
         }
 
-        public LogControlViewModel(StatusBarViewModel statusBar, Action<ComButton.TransferMode> newMode)
+        public LogControlViewModel(StatusBarViewModel statusBar)
         {
             ClearCommand = new DelegateCommand(() => Items.Clear());
-            ToHexModeCommand = new DelegateCommand(OnToHexMode);
             _dispatcher = Dispatcher.CurrentDispatcher;
-            _newModeCallback = newMode;
-        }
-
-        ComButton.TransferMode _transferMode = ComButton.TransferMode.Ascii;
-        private void OnToHexMode()
-        {
-            if (_transferMode == ComButton.TransferMode.Binary)
-                return;
-
-            _transferMode = ComButton.TransferMode.Binary;
-            _newModeCallback(_transferMode);
-            RaisePropertyChanged(nameof(HexModeIsActive));
         }
 
         internal void AddLog(LogMessage message) 

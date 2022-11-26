@@ -17,6 +17,8 @@ namespace EvalApplication.Ux.ViewModels
         public double WorkLoad { get; set; } = 5;
 
         public DelegateCommandBase ConnectCommand { get; }
+        public DelegateCommandBase ToHexModeCommand { get; }
+
         bool CanConnect() => ActiveButton != null;
         bool CanInteract(string _ = "") => ActiveButton?.IsConnected ?? false;
         bool CanInteract() => ActiveButton?.IsConnected ?? false;
@@ -54,6 +56,13 @@ namespace EvalApplication.Ux.ViewModels
             set => SetProperty(ref _btnState, value);
         }
 
+        private string _connectAction = "Connect";
+        public string ConnectAction
+        {
+            get => _connectAction;
+            set => SetProperty(ref _connectAction, value);
+        }
+
         private string _state;
         public string State
         {
@@ -67,10 +76,14 @@ namespace EvalApplication.Ux.ViewModels
             set => SetProperty(ref _progressPercent, Math.Min(100, value));
         }
 
+        ComButton.TransferMode _transferMode = ComButton.TransferMode.Ascii;
+        public ComButton.TransferMode TransferMode {
+            get => _transferMode;
+            set => SetProperty(ref _transferMode, value);
+        }
 
         public ObservableCollection<ComButton> AvailableButtons { get; } = new ObservableCollection<ComButton>();
         public ComButton.Color SetColor { get; set; } = new ComButton.Color();
-        public ComButton.TransferMode TransferMode { get; internal set; } = ComButton.TransferMode.Ascii;
 
         public DeviceControlViewModel()
         {
@@ -84,6 +97,7 @@ namespace EvalApplication.Ux.ViewModels
             _logControl = logControl;
 
             ConnectCommand = new DelegateCommand(OnConnect, CanConnect).ObservesProperty(() => ActiveButton);
+            ToHexModeCommand = new DelegateCommand(OnToHexMode);
             SetStateCommand = new DelegateCommand<string>(OnSetState, CanInteract).ObservesProperty(() => Connection);
             SetColorCommand = new DelegateCommand(OnSetColor, CanInteract).ObservesProperty(() => Connection);
             ReadStateCommand = new DelegateCommand(OnReadState, CanInteract).ObservesProperty(() => Connection);
@@ -104,11 +118,21 @@ namespace EvalApplication.Ux.ViewModels
             Debug.WriteLine("-- OnConnect");
             try
             {
-                await ActiveButton.Connect(UpdateButtonState, UpdateStatusMessage, TransferMode);
-                ActiveButton.AppendLogger(LogTransferRaw);
-                Connection = ConnectionState.Connected;
+                if (ConnectAction == "Connect")
+                {
+                    await ActiveButton.Connect(UpdateButtonState, UpdateStatusMessage, TransferMode);
+                    ActiveButton.AppendLogger(LogTransferRaw);
+                    Connection = ConnectionState.Connected;
+                    ConnectAction = "Disconnect";
+                }
+                else
+                {
+                    await ActiveButton.Diconnect();
+                    Connection = ConnectionState.Disconnected;
+                    ConnectAction = "Connect";
+                }                
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 Connection = ConnectionState.FailedToConnect;
             }
@@ -191,6 +215,14 @@ namespace EvalApplication.Ux.ViewModels
         {
             Dispatcher.CurrentDispatcher.Invoke (() => 
             _logControl.AddLog(message) );
+        }
+
+        private void OnToHexMode()
+        {
+            if (TransferMode == ComButton.TransferMode.Binary)
+                return;
+
+            TransferMode = ComButton.TransferMode.Binary;
         }
     }
 }

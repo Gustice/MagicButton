@@ -38,7 +38,6 @@ namespace ComBridge
 
         public enum ButtonEvent
         {
-            Unknown,
             Pressed,
             Released
         }
@@ -87,6 +86,13 @@ namespace ComBridge
 
             _port.DiscardInBuffer();
             _port.DiscardOutBuffer();
+        }
+
+
+        public Task Diconnect()
+        {
+            _port.Close();
+            return Task.CompletedTask;
         }
 
         private void PortConnect()
